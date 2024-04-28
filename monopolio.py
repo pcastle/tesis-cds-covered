@@ -3,6 +3,7 @@ import scipy
 import numpy as np
 import multiprocessing as mp
 import json
+import re
 
 y, p, q, b = symbols('y p q b', real = True, positive = True)
 t = symbols('t', positive = True)
@@ -29,46 +30,56 @@ q = Min(1,d/p)
 
 u = q*integrate((p/b*y-1)*g.subs(t,0.6),(y,b/p,1))
 
-print(u.subs([(b,0.25),(p,0.9)]),q.subs([(b,0.25),(p,0.9)]),d.subs([(b,0.25),(p,0.9)]),integrate((p/b*y-1)*g.subs(t,0.6),(y,b/p,1)).subs([(b,0.25),(p,0.9)]))
+
 def f_objetivo(x,b_v):
     fun = lambdify(p, u.subs(b,b_v))
     return -1*fun(x[0])
 
-# Debido a que estos métodos sin sencibles al valor inicial, este debe ser uno tal que la función objetivo no sea 0
+# print(f_objetivo([0.6],0.5))
+# Debido a que estos métodos son sencibles al valor inicial, este debe ser uno tal que la función objetivo no sea 0
 def busca_valor_inicial(b_v,fun_objetivo):
     vector_valores = np.linspace(b_v,1,100)
     for x0 in vector_valores:
-        if abs(fun_objetivo([x0],b_v)) > 1e-3:
+        if abs(fun_objetivo([x0],b_v)) > 1e-10:
             return x0
 
 def busqueda_equilibrio(b_v,return_dict):
     x0 = busca_valor_inicial(b_v,f_objetivo)
-    resultado = scipy.optimize.minimize(f_objetivo,x0,args = (b_v),bounds=[(b_v,1)], tol=1e-10, options={"maxiter" : 1000},method='L-BFGS-B')
-    return_dict[f"{b_v}.x"] = resultado.x
+    # x0 = b_v
+    resultado = scipy.optimize.minimize(f_objetivo,[x0],args = (b_v),bounds=[(b_v,1)], tol=1e-10, options={"maxiter" : 1000},method='Nelder-Mead')
+    return_dict[f"{b_v}.p"] = resultado.x[0]
     return_dict[f"{b_v}.success"] = resultado.success
-
     return return_dict
+
+
+# print(busca_valor_inicial(0.745,f_objetivo))
+# print(busqueda_equilibrio(0.7,dict()))
 
 
 if __name__ == '__main__':
 
     blin_v = np.linspace(.25,.75,100)
-    result_array = np.zeros((100,1))
+    # result_array = np.zeros((100,1))
 
     manager = mp.Manager()
     return_dict = manager.dict()
     processes = []
 
-    for idx, b_v in enumerate(blin_v):
-        p = mp.Process(target = busqueda_equilibrio, args = (b_v,return_dict))
-        processes.append(p)
-        p.start()
+    for b_v in blin_v:
+        proc = mp.Process(target = busqueda_equilibrio, args = (b_v,return_dict,))
+        proc.start()
+        processes.append(proc)
+
 
 
     for process in processes:
         process.join()
 
+    # diccionario normal
+    resultado = dict()
+    for x,y in return_dict.items():
+        resultado[x] = y
+        print(resultado)
 
-    json_obj = json.dumps(return_dict,indent = 4)
-    with open("equilibrios.json","w") as outfile:
-        outfile.write(json_obj)
+    with open('equilibrios_monopolio.json', 'w') as f:
+        json.dump(resultado, f)
