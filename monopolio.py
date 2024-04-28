@@ -2,7 +2,8 @@ from sympy import symbols, Piecewise, Min, Max, integrate, pycode, parse_expr, s
 import scipy
 import numpy as np
 import multiprocessing as mp
-import pickle
+import json
+import re
 
 y, p, q, b = symbols('y p q b', real = True, positive = True)
 t = symbols('t', positive = True)
@@ -46,7 +47,7 @@ def busqueda_equilibrio(b_v,return_dict):
     x0 = busca_valor_inicial(b_v,f_objetivo)
     # x0 = b_v
     resultado = scipy.optimize.minimize(f_objetivo,[x0],args = (b_v),bounds=[(b_v,1)], tol=1e-10, options={"maxiter" : 1000},method='Nelder-Mead')
-    return_dict[f"{b_v}.x"] = resultado.x
+    return_dict[f"{b_v}.p"] = resultado.x[0]
     return_dict[f"{b_v}.success"] = resultado.success
     return return_dict
 
@@ -74,6 +75,11 @@ if __name__ == '__main__':
     for process in processes:
         process.join()
 
+    # diccionario normal
+    resultado = dict()
+    for x,y in return_dict.items():
+        resultado[x] = y
+        print(resultado)
 
-    with open('saved_dictionary.pkl', 'wb') as f:
-        pickle.dump(return_dict, f)
+    with open('equilibrios_monopolio.json', 'w') as f:
+        json.dump(resultado, f)
