@@ -3,6 +3,7 @@ import scipy
 import numpy as np
 import multiprocessing as mp
 import json
+import math
 
 y, p, q, b = symbols('y p q b', real = True, positive = True)
 t = symbols('t', positive = True)
@@ -40,19 +41,22 @@ def recaudacion(x,b_v):
 
 # print(f_objetivo([0.6],0.5))
 # Debido a que estos métodos son sencibles al valor inicial, este debe ser uno tal que la función objetivo no sea 0
-def busca_valor_inicial(b_v,fun_objetivo):
-    vector_valores = np.linspace(1,b_v,100)
+def busca_valor_inicial(b_v,fun_objetivo,f_recuadacion) :
+    vector_valores = np.linspace(b_v,1,100)
     for x0 in vector_valores:
-        if abs(fun_objetivo([x0],b_v)) > 1e-3 & recaudacion([x0],b_v) <= x0:
+        if abs(fun_objetivo([x0],b_v)) > 1e-4 and f_recuadacion([x0],b_v) <= x0:
             return x0
 
+
 def busqueda_equilibrio(b_v,return_dict):
-    x0 = busca_valor_inicial(b_v,f_objetivo)
+    x0 = busca_valor_inicial(b_v,f_objetivo,recaudacion)
     # x0 = b_v
+    cons = ({'type':'ineq', 'fun' : lambda x: x[0] - recaudacion(x,b_v)})
     resultado = scipy.optimize.minimize(f_objetivo,[x0],args = (b_v),bounds=[(b_v,1)], 
+                                        constraints = cons,
                                         tol=1e-10, options={"maxiter" : 1000})
-    return_dict[f"{b_v}.p"] = resultado.x[0]
-    return_dict[f"{b_v}.success"] = resultado.success
+    return_dict[f"{b_v}.p"] = resultado.x[0] if not math.isnan(resultado.x[0]) else np.nan
+    return_dict[f"{b_v}.success"] = str(resultado.success)
     print(f"el equilibrio con {b_v} y {x0} fue: {resultado.x[0]}")
     return return_dict
 
