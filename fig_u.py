@@ -1,9 +1,8 @@
 import matplotlib.pyplot as plt
 from sympy import symbols, Piecewise, Min, Max, integrate, pycode, parse_expr, solve, lambdify
-import sympy
 # from monopolio import *
 import numpy as np
-import sympy.plotting
+
 
 # x = np.linspace(0.25,1,100)
 # print(d.subs([(b,0.25),(p,0.7)])/0.7)
