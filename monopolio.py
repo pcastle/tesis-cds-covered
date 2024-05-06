@@ -8,7 +8,7 @@ import math
 y, p, q, b = symbols('y p q b', real = True, positive = True)
 t = symbols('t', positive = True)
 
-g = 3*(1-t)*(y-1)**2 + 3*t*y**2
+g = 3*(1-t*3/4)*(y-1)**2 + 3*t*3/4*y**2
 
 # Defino solo la parte en la que se encuentra el equilibrio
 
@@ -28,7 +28,7 @@ d = 1 - Max(tbarra,Min(tgorro,1))
 # Disminucion de la dimension del problema
 q = Min(1,d/p)
 
-u = integrate((Min(p*q/b,1)*y-q)*g.subs(t,1),(y,b/p,1))
+u = integrate((Min(p*q/b,1)*y-q)*3*y**2,(y,b/p,1))
 
 
 def f_objetivo(x,b_v):
@@ -57,12 +57,12 @@ def busqueda_equilibrio(b_v,return_dict):
                                         tol=1e-10, options={"maxiter" : 1000})
     return_dict[f"{b_v}.p"] = resultado.x[0] if not math.isnan(resultado.x[0]) else np.nan
     return_dict[f"{b_v}.success"] = str(resultado.success)
-    print(f"el equilibrio con {b_v} y {x0} fue: {resultado.x[0]}")
+    # print(f"el equilibrio con {b_v} y {x0} fue: {resultado.x[0]}")
     return return_dict
 
-if __name__ == '__main__':
 
-    blin_v = np.linspace(.25,.75,100)
+if __name__ == '__main__':
+    blin_v = np.linspace(.25,0.625,100)
     # result_array = np.zeros((100,1))
 
     manager = mp.Manager()
@@ -75,7 +75,6 @@ if __name__ == '__main__':
         processes.append(proc)
 
 
-
     for process in processes:
         process.join()
 
@@ -84,5 +83,5 @@ if __name__ == '__main__':
     for x,y in return_dict.items():
         resultado[x] = y
 
-    with open('equilibrios_monopolio.json', 'w') as f:
+    with open('equilibrios_monopolio_2.json', 'w') as f:
         json.dump(resultado, f)

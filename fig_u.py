@@ -35,8 +35,9 @@ for x in range(100):
 
 fig, ax = plt.subplots()
 
-ax.contourf(P,Q,U)
+ax.contourf(P,Q,U, 10)
 ax.plot(np.linspace(0.3,1,100),llega_al_fondo(np.linspace(0.3,1,100),0.3),'k-',label = '$q = \\frac{\\bar b}{p}$')
+ax.plot((0.3,0.3),(0,1), 'k--')
 ax.set(xlabel = "precio",
        ylabel = "cantidad")
 ax.legend()
