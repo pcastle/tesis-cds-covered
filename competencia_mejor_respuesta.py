@@ -5,11 +5,12 @@ import numpy as np
 import matplotlib.pyplot as plt
 import json
 import multiprocessing as mp
+from shapely.geometry import LineString
 
 
 # Eequilibrio buscado
 b1_v = 0.3
-b2_v = 0.5
+b2_v = 0.4
 
 
 y1, p1, q1, b1, y2, p2, q2, b2 = sympy.symbols('y1 p1 q1 b1 y2 p2 q2 b2', real=True, positive=True)
@@ -60,7 +61,6 @@ def res2(x, b1_v, b2_v, p1_v):
     fun = d2.subs([(q1,d1/p1),(q2,d2/p2),(b1, b1_v),(b2,b2_v),(p1,p1_v),(p2,x[0])]).doit()
     return fun
 
-
 def busca_valor_inicial(b_v,precio_c,fun_objetivo,f_recuadacion) :
     vector_valores = np.linspace(b_v,1,100)
     for x0 in vector_valores:
@@ -99,70 +99,46 @@ def mejor_p2(x):
     output["flag"] = result2.success
     return output
 
-
-def correspondencia(x):
-    p1_v = x[0]
-    p2_v = x[1]
-
-    # cons1 = ({"type": "ineq", "fun": lambda x: x[0] - res1(x, b1_v, b2_v, p2_v)})
-    # cons2 = ({"type": "ineq", "fun": lambda x: x[0] - res2(x, b1_v, b2_v, p1_v)})
-    # x0_1 = [p1_v]
-    # x0_2 = [p2_v]
-
-    # # print(f1([0.9],b1_v,b2_v,p2_v))
-    # result1 = scipy.optimize.minimize(f1,x0_1,args = (b1_v, b2_v, p2_v),constraints=cons1, bounds=[(b1_v,1)], tol=1e-10, options={"maxiter" : 1000})
-    # result2 = scipy.optimize.minimize(f2,x0_2,args = (b1_v, b2_v, p1_v),constraints=cons2, bounds=[(b2_v,1)], tol=1e-10, options={"maxiter" : 1000})
-    
-    result1 = mejor_p1(x)
-    result2 = mejor_p2(x)
-
-    return (result1['mejor_respuesta']- p1_v,result2['mejor_respuesta'] - p2_v)
-
-
-def busqueda_equilibrio(x0_1,x0_2,return_dict):
-    x0 = [x0_1,x0_2]
-    sol = scipy.optimize.fsolve(correspondencia,x0, xtol=1e-10,maxfev=1000000, full_output=True)
-
-    # Guardo el equilibrio solo si converge a una solución
-    return_dict[f"equilibrio"] = sol[0] if sol[2] == 1 else np.nan
-    print(sol[0],sol[2])
-    return return_dict
-
-
-# b1_v, b2_v = 0.4, 0.6
-# sol = scipy.optimize.fsolve(correspondencia,[0.8  , 0.8], xtol=1e-10,maxfev=1000000, full_output=True)
-# print(sol[2])
-
 if __name__ == '__main__':
     pool = mp.Pool(processes=5)
-    x0_p1 = np.linspace(b1_v,1,5)
-    x0_p2 = np.linspace(b2_v,1,5)
-    result = [pool.apply(busqueda_equilibrio, args = (x0_1,x0_2,{})) for x0_1 in x0_p1 for x0_2 in x0_p2]
-    print(result)
+    x0_p1 = np.linspace(b1_v,1,100)
+    x0_p2 = np.linspace(b2_v,1,100)
+    result1 = [pool.apply(mejor_p1, args = ([0.9,x0_2],)) for x0_2 in x0_p2]
 
-# if __name__== "__main__":
-#     # Posible valores iniciales 
-#     x0_p1 = np.linspace(b1_v,1,25)
-#     x0_p2 = np.linspace(b2_v,1,25)
+    pool = mp.Pool(processes=5)
+    result2 = [pool.apply(mejor_p2, args = ([x0_1,0.9],)) for x0_1 in x0_p1]
 
-#     manager = mp.Manager()
-#     return_dict = manager.dict()
-#     processes = []
+    # Gráfico 
+    X1 = [x["p_2"] for x in result1]
+    Y1 = [x["mejor_respuesta"] for x in result1]
 
-#     for x0_1 in x0_p1:
-#         for x0_2 in x0_p2:
-#             proc = mp.Process(target = busqueda_equilibrio, args = (x0_1,x0_2,return_dict,))
-#             proc.start()
-#             processes.append(proc)
+    # print(result2)
+    X2 = [x['mejor_respuesta'] for x in result2]
+    Y2 = [x['p_1'] for x in result2]
 
 
-#     for process in processes:
-#         process.join()
+    fig, ax = plt.subplots()
+    ax.plot(X1,Y1,'k' ,label = '$p_1^*(p_2)$')
+    ax.plot(X2,Y2, 'k--' ,label = '$p_2^*(p_1)$')
 
-#     # diccionario normal
-#     resultado = dict()
-#     for x,y in return_dict.items():
-#         resultado[x] = y
+    first_line = LineString(np.column_stack((X1, Y1)))
+    second_line = LineString(np.column_stack((X2, Y2)))
+    intersection = first_line.intersection(second_line)
+    if intersection.geom_type == 'MultiPoint':
+        plt.plot(*LineString(intersection).xy, 'ro')
+        print(*LineString(intersection).xy)
+    elif intersection.geom_type == 'Point':
+        plt.plot(*intersection.xy, 'ro')
+        print(*intersection.xy[0],*intersection.xy[1])
+    ax.legend()
 
-#     with open(f'equilibrios_competencia_{b1_v}_{b2_v}.json', 'w') as f:
-#         json.dump(resultado, f)
+    # Se añade un grilla
+    plt.grid(color = '0.95')
+    plt.show()
+
+    # Utilidad Esperada en el equilibrio
+    print(-1*f1([*intersection.xy[1]],b1_v,b2_v,*intersection.xy[0]),-1*f2([*intersection.xy[0]],b1_v,b2_v,*intersection.xy[1]))
+    # b_1 = 0.3, b_2 = 0.3, u1 = 0.396219891690342, u2 = 0.396219891690342, p1 = 0.8383069040491118, p2 = 0.8383069040491118
+    # b_1 = 0.3, b_2 = 0.45, u1 = 0.388682409457761, u2 = 0.125549082004835, p1 = 0.8201427002575252, p2 = 0.7257716810861742
+    # b_1 = 0.45, b_2 = 0.45, u1 = 0.115103754825807, u2 = 0.115103754825807, p1 = 0.715342732352281, p2 = 0.715342732352281
+    # b_1 = 0.3, b_2 = 0.55, u1 = 0.400570132003853, u2 = 0.0382104284691861, p1 = 0.8490742186863194, p2 = 0.7725374368397775
