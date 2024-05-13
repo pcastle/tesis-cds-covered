@@ -52,7 +52,7 @@ d3 = Max(0,Min(1,d3))
 # sympy.plot(d2.subs([(r,0.2),(b2,b2_v),(q2,0.4)]),(p2,0,1))
 
 u2 = integrate(Max(0,Min(1,p2*q2/b2)*y2- q2)*g2.subs(t2,1),(y2,0,1))
-u3 = Min(q2,d3)*(r - integrate((1-Min(1,p2/b2*y2))*9*y2**8,(y2,0,1)))
+u3 = Min(q2,d3)*(r - integrate((1-Min(1,p2/b2*y2))*y2,(y2,0,1)))
 # print(u3.subs([(q2,0.5),(b2,0.3),(p2,0.8),(r,0.2)]))
 
 def f2(x, b2_v, r_v):
@@ -64,7 +64,7 @@ def res(p2_v, r_v):
     return fun
 
 def f3(x, b2_v, p2_v):
-    fun1 = (r - integrate((1-Min(1,p2/b2*y2))*9*y2**8,(y2,0,1))).subs([(q2,Min(1,d2/p2,b2/p2)),(b2,b2_v),(r,x[0]),(p2,p2_v)]).doit() 
+    fun1 = (r - integrate((1-Min(1,p2/b2*y2))*y2,(y2,0,1))).subs([(q2,Min(1,d2/p2,b2/p2)),(b2,b2_v),(r,x[0]),(p2,p2_v)]).doit() 
     fun2 =  Min(q2,d3).subs([(q2,Min(1,d2/p2,b2/p2)),(b2,b2_v),(r,x[0]),(p2,p2_v)]).doit() 
     return -1*fun1*fun2
 
@@ -132,26 +132,26 @@ def busqueda_equilibrio(x0_1,x0_2,return_dict):
     print(sol[0],sol[2])
     return return_dict
 
-print(busqueda_equilibrio(0.7, 0.3,{}))
-print(mejor_p2([0.7, 0.3]),mejor_r([0.7, 0.3]))
+# print(busqueda_equilibrio(0.7, 0.3,{}))
+# print(mejor_p2([0.7, 0.3]),mejor_r([0.7, 0.3]))
 
-# if __name__ == '__main__':
-#     pool = mp.Pool(processes=5)
-#     x0_p2 = np.linspace(0,1,5)
-#     x0_r = np.linspace(0,1,5)
-#     result = [pool.apply(busqueda_equilibrio, args = (x0_2,x0_3,{})) for x0_2 in x0_p2 for x0_3 in x0_r]
-#     print(result)
+if __name__ == '__main__':
+    pool = mp.Pool(processes=12)
+    x0_p2 = np.linspace(b2_v,1,10)
+    x0_r = np.linspace(0,0.3,10)
+    result = pool.starmap(busqueda_equilibrio, [(x0_2,x0_3,{}) for x0_2 in x0_p2 for x0_3 in x0_r]) 
+    print(result)
 
-# print(mejor_r([0.4, 0.4]))
-# print(f3([0.4],0.26,0.4),f3([mejor_r([0.4, 0.4])["mejor_respuesta"]],0.26,0.4))
+    # print(mejor_r([0.4, 0.4]))
+    # print(f3([0.4],0.26,0.4),f3([mejor_r([0.4, 0.4])["mejor_respuesta"]],0.26,0.4))
 
-# rs = np.linspace(0,1,100)
-# f3_vec = np.zeros(100)
-# for idx, r_v in enumerate(rs):
-#     f3_vec[idx] = -1*f2([r_v],b2_v,0.6) if r_v != 0 else 0
+    # rs = np.linspace(0,1,100)
+    # f3_vec = np.zeros(100)
+    # for idx, r_v in enumerate(rs):
+    #     f3_vec[idx] = -1*f2([r_v],b2_v,0.6) if r_v != 0 else 0
 
-# r_opt = mejor_r([0.4, 0.4])["mejor_respuesta"]
-# fig, ax = plt.subplots()
-# ax.plot(rs,f3_vec)
-# ax.plot(r_opt,-1*f3([r_opt],0.26,0.4),'ro')
-# plt.show()
+    # r_opt = mejor_r([0.4, 0.4])["mejor_respuesta"]
+    # fig, ax = plt.subplots()
+    # ax.plot(rs,f3_vec)
+    # ax.plot(r_opt,-1*f3([r_opt],0.26,0.4),'ro')
+    # plt.show()
