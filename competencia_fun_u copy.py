@@ -12,7 +12,7 @@ y1, p1, q1, b1, y2, p2, q2, b2 = sympy.symbols('y1 p1 q1 b1 y2 p2 q2 b2', real=T
 t1, t2 = sympy.symbols('t1 t2', positive=True)
 
 g1 = 3*(1-t1)*(y1-1)**2 + 3*t1*y1**2
-g2 = 3*(1-t2)*(y2-1)**2 + 3*t2*y2**2
+g2 = 3*(1-t2*3/4)*(y2-1)**2 + 3*t2*3/4*y2**2
 
 ## p*q < b barra y p >= b barra
 vf1 = parse_expr((pycode(integrate(Min(p1*y1/b1,1)*g1,(y1,0,1)))).replace("min(1, b1/p1)","(b1/p1)"), locals())
@@ -36,8 +36,8 @@ alp_inv = solve(vf2/p2 - vf1/p1,t1)[0]
 d1 = Piecewise((integrate(alp,(t1,Min(tgorro1,1),1)),alp_inv.subs(t2,1) >= 1), (integrate(alp,(t1,Min(tgorro1,1),alp_inv.subs(t2,1))) + 1 - alp_inv.subs(t2,1), True))
 d2 = Piecewise((integrate(alp_inv,(t2,Min(tgorro2,1),1)),alp.subs(t1,1) >= 1), (integrate(alp_inv,(t2,Min(tgorro2,1),alp.subs(t1,1))) + 1 - alp.subs(t1,1), True))
 
-u1 = integrate(Max(0,Min(1,p1*q1/b1)*y1- q1)*g1.subs(t1,1),(y1,0,1))
-u2 = integrate(Max(0,Min(1,p2*q2/b2)*y2- q2)*g2.subs(t2,1),(y2,0,1))
+u1 = integrate(Max(0,Min(1,p1*q1/b1)*y1- q1)*3*y1**2,(y1,0,1))
+u2 = integrate(Max(0,Min(1,p2*q2/b2)*y2- q2)*3*y2**2,(y2,0,1))
 
 
 # Eequilibrios buscados
@@ -54,20 +54,20 @@ b1_v4 = 0.3
 b2_v4 = 0.55
 
 # Con b1 = b2 = 0.3
-p1_opt1 = 0.8383
-p2_opt1 = 0.8383
+p1_opt1 = 0.8407
+p2_opt1 = 0.7515
 
 # Con b1 = 0.3 y b2 = 0.4
-p1_opt2 = 0.8031
-p2_opt2 = 0.7082
+p1_opt2 = 0.8241
+p2_opt2 = 0.6387
 
 # con b1 = b2 = 0.4
-p1_opt3 = 0.6727
-p2_opt3 = 0.6727
+p1_opt3 = 0.7046
+p2_opt3 = 0.6321
 
-# con b1 = 0.3 y b2 = 0.5
-p1_opt4 = 0.8491
-p2_opt4 = 0.7725
+# con b1 = 0.3 y b2 = 0.55s
+p1_opt4 = 0.8665
+p2_opt4 = 0.6835
 
 def f2(x, b1_v, b2_v, p1_v):
     fun = u2.subs([(q1,d1/p1),(q2,d2/p2),(b1, b1_v),(b2,b2_v),(p1,p1_v),(p2,x[0])])
@@ -109,4 +109,4 @@ ax.set(ylabel = 'utilidad',
 
 # Se añade un grilla
 plt.grid(color = '0.95')
-plt.savefig(f"figuras/optimo_escenarios.eps",format = 'eps')
+plt.savefig(f"figuras/optimo_escenarios_pesimista.eps",format = 'eps')

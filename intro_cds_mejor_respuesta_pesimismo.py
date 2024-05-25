@@ -152,34 +152,34 @@ if __name__ == '__main__':
     X2 = [x['mejor_respuesta'] for x in result3]
     Y2 = [x['p2'] for x in result3]
 
-    # Un equilibrio se da cuando p2+r <= 1 en ambas mejores respuesta
-    r_eq = np.zeros(100)
-    p2_eq = np.zeros(100)
+    # # Un equilibrio se da cuando p2+r <= 1 en ambas mejores respuesta
+    # r_eq = np.zeros(100)
+    # p2_eq = np.zeros(100)
 
-    r_max = 0
-    p2_max = 0
-    for idx in range(100):
-        if X1[idx] + Y1[idx] <= 1:
-            r_max = X1[idx]
-        if Y2[idx] if X2[idx] + Y2[idx] <= 1 and X2[idx] <= r_max and X2[idx] < X2[idx-1]:
-            p2_min = Y2[idx]
+    # r_max = 0
+    # p2_max = 0
+    # for idx in range(100):
+    #     if X1[idx] + Y1[idx] <= 1:
+    #         r_max = X1[idx]
+    #     if Y2[idx] if X2[idx] + Y2[idx] <= 1 and X2[idx] <= r_max and X2[idx] < X2[idx-1]:
+    #         p2_min = Y2[idx]
 
 
-    print(p2_min)
-    ##  
-    for idx in range(100):
-        if idx == 0:
-            r_eq[idx] = X2[idx] if X2[idx] + Y2[idx] <= 1 and X2[idx] <= r_max else np.nan
-            p2_eq[idx] = Y2[idx] if X2[idx] + Y2[idx] <= 1 and X2[idx] <= r_max else np.nan
-        else:
-            r_eq[idx] = X2[idx] if X2[idx] + Y2[idx] <= 1 and X2[idx] <= r_max and X2[idx] < X2[idx-1] else np.nan
-            p2_eq[idx] = Y2[idx] if X2[idx] + Y2[idx] <= 1 and X2[idx] <= r_max and X2[idx] < X2[idx-1] else np.nan
+    # print(p2_min)
+    # ##  
+    # for idx in range(100):
+    #     if idx == 0:
+    #         r_eq[idx] = X2[idx] if X2[idx] + Y2[idx] <= 1 and X2[idx] <= r_max else np.nan
+    #         p2_eq[idx] = Y2[idx] if X2[idx] + Y2[idx] <= 1 and X2[idx] <= r_max else np.nan
+    #     else:
+    #         r_eq[idx] = X2[idx] if X2[idx] + Y2[idx] <= 1 and X2[idx] <= r_max and X2[idx] < X2[idx-1] else np.nan
+    #         p2_eq[idx] = Y2[idx] if X2[idx] + Y2[idx] <= 1 and X2[idx] <= r_max and X2[idx] < X2[idx-1] else np.nan
 
 
     fig, ax = plt.subplots()
     ax.plot(X1,Y1,'k' ,label = '$p_2^*(r)$')
     ax.plot(X2,Y2, 'k--' ,label = '$r^*(p_2)$')
-    ax.plot(r_eq,p2_eq,'r',alpha=.9)
+    # ax.plot(r_eq,p2_eq,'r',alpha=.9)
 
     ax.set(ylabel = 'precio de $\\mathcal{A}_2 (p_2)$',
            xlabel = 'precio de $\\mathcal{A}_3 (r)$')
@@ -188,12 +188,12 @@ if __name__ == '__main__':
     second_line = LineString(np.column_stack((X2, Y2)))
     intersection = first_line.intersection(second_line)
     print(intersection)
-    # if intersection.geom_type == 'MultiPoint':
-    #     plt.plot(*LineString(intersection).xy, 'ro')
-    #     print(*LineString(intersection).xy)
-    # elif intersection.geom_type == 'Point':
-    #     plt.plot(*intersection.xy, 'ro')
-    #     print(*intersection.xy[0],*intersection.xy[1])
+    if intersection.geom_type == 'MultiPoint':
+        plt.plot(*LineString(intersection).xy, 'ro')
+        print(*LineString(intersection).xy)
+    elif intersection.geom_type == 'Point':
+        plt.plot(*intersection.xy, 'ro')
+        print(*intersection.xy[0],*intersection.xy[1])
     ax.legend()
 
     # Se añade un grilla

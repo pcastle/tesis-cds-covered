@@ -17,7 +17,7 @@ y1, p1, q1, b1, y2, p2, q2, b2 = sympy.symbols('y1 p1 q1 b1 y2 p2 q2 b2', real=T
 t1, t2 = sympy.symbols('t1 t2', positive=True)
 
 g1 = 3*(1-t1)*(y1-1)**2 + 3*t1*y1**2
-g2 = 3*(1-t2)*(y2-1)**2 + 3*t2*y2**2
+g2 = 3*(1-3/4*t2)*(y2-1)**2 + 3*3/4*t2*y2**2
 
 ## p*q < b barra y p >= b barra
 vf1 = parse_expr((pycode(integrate(Min(p1*y1/b1,1)*g1,(y1,0,1)))).replace("min(1, b1/p1)","(b1/p1)"), locals())
@@ -36,13 +36,17 @@ tgorro2 = solve(vf2 - p2,t2)[0]
 
 
 alp = solve(vf2/p2 - vf1/p1,t2)[0]
+# alp = Max(0,Min(1,alp))
 alp_inv = solve(vf2/p2 - vf1/p1,t1)[0]
+# alp_inv = Max(0,Min(1,alp_inv))
+
+# print(alp_inv.subs([(t2,1),(b1,b1_v),(b2,b2_v),(p2,1),(p1,0.86)]),tgorro2.subs([(b1,b1_v),(b2,b2_v),(p2,1),(p1,0.86)]),tgorro1.subs([(b1,b1_v),(b2,b2_v),(p2,1),(p1,0.86)]))
 
 d1 = Piecewise((1-tgorro1,tgorro2 >= 1),(integrate(alp,(t1,Min(tgorro1,1),1)),alp_inv.subs(t2,1) >= 1), (integrate(alp,(t1,Min(tgorro1,1),alp_inv.subs(t2,1))) + 1 - alp_inv.subs(t2,1), True))
 d2 = Piecewise((1-tgorro2,tgorro1 >= 1),(integrate(alp_inv,(t2,Min(tgorro2,1),1)),alp.subs(t1,1) >= 1), (integrate(alp_inv,(t2,Min(tgorro2,1),alp.subs(t1,1))) + 1 - alp.subs(t1,1), True))
 
-u1 = integrate(Max(0,Min(1,p1*q1/b1)*y1- q1)*g1.subs(t1,1),(y1,0,1))
-u2 = integrate(Max(0,Min(1,p2*q2/b2)*y2- q2)*g2.subs(t2,1),(y2,0,1))
+u1 = integrate(Max(0,Min(1,p1*q1/b1)*y1- q1)*3*y1**2,(y1,0,1))
+u2 = integrate(Max(0,Min(1,p2*q2/b2)*y2- q2)*3*y2**2,(y2,0,1))
 
 
 def f1(x, b1_v, b2_v, p2_v):
@@ -60,6 +64,38 @@ def f2(x, b1_v, b2_v, p1_v):
 def res2(x, b1_v, b2_v, p1_v):
     fun = d2.subs([(q1,d1/p1),(q2,d2/p2),(b1, b1_v),(b2,b2_v),(p1,p1_v),(p2,x[0])]).doit()
     return fun
+
+
+# # print([mejor_p1([0.9,x]) for x in np.linspace(0.7,1,20)])
+# p1s = np.linspace(.6,1,100)
+# Z1 = np.zeros(100)
+# Z2 = np.zeros(100)
+# Z3 = np.zeros(100)
+# Z4 = np.zeros(100)
+
+
+
+
+# for idx, p1_v in enumerate(p1s):
+#     Z1[idx] = -1*f1([p1_v],b1_v,b2_v,.95)
+#     Z4[idx] = res1([p1_v],b1_v,b2_v,.95)
+#     Z2[idx] = tgorro1.subs([(p1,p1_v),(p2,.95),(b1,b1_v),(b2,b2_v)])
+#     # Z3[idx] = alp.subs([(p1,p1_v),(p2,.95),(b1,b1_v),(b2,b2_v),(t1,Z2[idx])])
+#     Z3[idx] = 1 - Z2[idx]
+
+#     # Z4[idx] = alp_inv.subs([(p1,p1_v),(p2,1),(b1,b1_v),(b2,b2_v)])
+
+
+# fig,ax = plt.subplots()
+# ax.plot(p1s,Z1)
+# ax.plot(p1s,Z2)
+# ax.plot(p1s,Z3)
+# ax.plot(p1s,Z4)
+
+
+
+
+# plt.show()
 
 
 if __name__ == '__main__':
@@ -82,9 +118,9 @@ if __name__ == '__main__':
             p1_v = busca_valor_inicial(b1_v,p2_v,f1,res1)
 
             cons1 = ({"type": "ineq", "fun": lambda x: x[0] - res1(x, b1_v, b2_v, p2_v)})
-            
+
             x0_1 = [p1_v]
-        
+
 
             # print(f1([0.9],b1_v,b2_v,p2_v))
             result1 = scipy.optimize.minimize(f1,x0_1,args = (b1_v, b2_v, p2_v),constraints=cons1, bounds=[(b1_v,1)], tol=1e-10, options={"maxiter" : 1000})
@@ -106,9 +142,7 @@ if __name__ == '__main__':
             output["mejor_respuesta"] = result2.x[0]
             output["flag"] = result2.success
             return output
-
-
-
+        
         pool = mp.Pool(processes=12)
         x0_p1 = np.linspace(b1_v,1,100)
         x0_p2 = np.linspace(b2_v,1,100)
@@ -127,7 +161,6 @@ if __name__ == '__main__':
         X2 = [x['mejor_respuesta'] for x in result2]
         Y2 = [x['p_1'] for x in result2]
 
-
         fig, ax = plt.subplots()
         ax.plot(X1,Y1,'k' ,label = '$p_1^*(p_2)$')
         ax.plot(X2,Y2, 'k--' ,label = '$p_2^*(p_1)$')
@@ -145,16 +178,17 @@ if __name__ == '__main__':
 
         # Se añade un grilla
         plt.grid(color = '0.95')
-        plt.savefig(f"figuras/mejor_respuesta_b1_{b1_v}_b2_{b2_v}.eps",format = 'eps')
+        plt.savefig(f"figuras/mejor_respuesta_pesimista_b1_{b1_v}_b2_{b2_v}.eps",format = 'eps')
+        
 
         # Utilidad Esperada en el equilibrio
         # print(-1*f1([*intersection.xy[1]],b1_v,b2_v,*intersection.xy[0]),-1*f2([*intersection.xy[0]],b1_v,b2_v,*intersection.xy[1]))
         print(f"b1 = {b1_v}, b2 = {b2_v} ",
-            " u1 = ", -1*f1([*intersection.xy[1]],b1_v,b2_v,*intersection.xy[0]),
-            " u2 = ",-1*f2([*intersection.xy[0]],b1_v,b2_v,*intersection.xy[1]),
-            ", p1 = ", *intersection.xy[1],",p2 = ",*intersection.xy[0])
-        # g benchmark
-        # b1 = 0.3, b2 = 0.3   u1 =  0.396219891690342  u2 =  0.396219891690342 , p1 =  0.838306904049112 ,p2 =  0.8383069040491118
-        # b1 = 0.3, b2 = 0.4   u1 =  0.381291667282466  u2 =  0.210638460541010 , p1 =  0.8030532009304225 ,p2 =  0.7082320628464787
-        # b1 = 0.4, b2 = 0.4   u1 =  0.177360293825365  u2 =  0.177360293825365 , p1 =  0.6727132423576708 ,p2 =  0.6727132423576708
-        # b1 = 0.4, b2 = 0.4   u1 =  0.177360293825365  u2 =  0.177360293825365 , p1 =  0.6727132423576708 ,p2 =  0.6727132423576708
+              " u1 = ", -1*f1([*intersection.xy[1]],b1_v,b2_v,*intersection.xy[0]),
+              " u2 = ",-1*f2([*intersection.xy[0]],b1_v,b2_v,*intersection.xy[1]),
+              ", p1 = ", *intersection.xy[1],"p2 = ",*intersection.xy[0])
+        # g pesimista para A2
+        # b1 = 0.3, b2 = 0.3   u1 =  0.397181834263458  u2 =  0.275983891091079 , p1 =  0.8406839737166457 p2 =  0.7514937762035241
+        # b1 = 0.3, b2 = 0.4   u1 =  0.390513155809781  u2 =  0.103326867908115 , p1 =  0.8244829782176484 p2 =  0.6397362056273044
+        # b1 = 0.4, b2 = 0.4   u1 =  0.208605503807571  u2 =  0.0854006048780909 , p1 =  0.7051288520798051 p2 =  0.6332123558401973
+        # b1 = 0.3, b2 = 0.55   u1 =  0.407387114032293  u2 =  0.00579583028482362 , p1 =  0.8665496361783978 p2 =  0.6835742596625332
