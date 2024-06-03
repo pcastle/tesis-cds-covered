@@ -9,12 +9,13 @@ import multiprocessing as mp
 from shapely.geometry import LineString
 
 
+
+# Eequilibrio buscado
 y2, p2, q2, b2, r = sympy.symbols('y2 p2 q2 b2 r', real=True, positive=True)
 t2 = sympy.symbols('t2', positive=True)
 
-# Equilibrio buscado
 b2_vec = [0.3, 0.4]
-h3 = 3*y2**2
+h3 = 1
 
 g2 = 3*(1-t2)*(y2-1)**2 + 3*t2*y2**2
 
@@ -52,7 +53,7 @@ d3 = Max(0,Min(1,d3))
 # sympy.plot(d2.subs([(r,0.2),(b2,b2_v),(q2,0.4)]),(p2,0,1))
 
 u2 = integrate(Max(0,Min(1,p2*q2/b2)*y2- q2)*3*y2**2,(y2,0,1))
-u3 = Min(q2,d3)*(r - integrate((1-Min(1,p2/b2*y2))*h3,(y2,0,1)))
+u3 = Min(q2,d3)*(r - integrate((1-Min(1,p2/b2*y2))*1,(y2,0,1)))
 # print(u3.subs([(q2,0.5),(b2,0.3),(p2,0.8),(r,0.2)]))
 
 def f2(x, b2_v, r_v):
@@ -64,11 +65,10 @@ def res(p2_v, r_v):
     return fun
 
 def f3(x, b2_v, p2_v):
-    fun1 = (r - integrate((1-Min(1,p2/b2*y2))*h3,(y2,0,1))).subs([(q2,Min(1,d2/p2,b2/p2)),(b2,b2_v),(r,x[0]),(p2,p2_v)]).doit() 
+    fun1 = (r - integrate((1-Min(1,p2/b2*y2))*1,(y2,0,1))).subs([(q2,Min(1,d2/p2,b2/p2)),(b2,b2_v),(r,x[0]),(p2,p2_v)]).doit() 
     fun2 =  Min(q2,d3).subs([(q2,Min(1,d2/p2,b2/p2)),(b2,b2_v),(r,x[0]),(p2,p2_v)]).doit() 
     return -1*fun1*fun2
 
-# print(f3([0.01],b2_v,0.1))
 
 def busca_valor_inicial(precio_c,fun_objetivo):
     vector_valores = np.linspace(0.001,1,100)
@@ -133,6 +133,7 @@ def busqueda_equilibrio(x0_1,x0_2,return_dict):
     print(sol[0],sol[2])
     return return_dict
 
+
 if __name__ == '__main__':
     for b2_v in b2_vec:
         pool = mp.Pool(processes=12)
@@ -191,13 +192,13 @@ if __name__ == '__main__':
 
         # Se añade un grilla
         ax.grid(color = '0.95')
-        plt.savefig(f'figuras/intro_cds_mejor_resupuesta_b_{b2_v}.eps', format = 'eps')
+        plt.savefig(f'figuras/intro_cds_mejor_respuesta_uniforme_b_{b2_v}.eps',format='eps')
 
         resultado_1 = {f'r_{x["r"]}' : f'{x["mejor_respuesta"]}' for x in result2}
         resultado_2 = {f'p2_{y["p2"]}' : f'{y["mejor_respuesta"]}' for y in result3}
 
         resultado = {**resultado_1,**resultado_2}
         # Guardo los datos en json
-        with open(f'equilibrios_intro_cds_b_{b2_v}.json', 'w') as f:
+        with open(f'equilibrios_intro_cds_uniforme_b_{b2_v}.json', 'w') as f:
             json.dump(resultado, f)
 

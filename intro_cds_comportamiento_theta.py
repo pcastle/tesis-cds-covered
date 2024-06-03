@@ -47,7 +47,7 @@ def tgorro_fun(p2_v,b2_v,q2_v,r_v):
 p2_lin = np.linspace(0.01,0.9,100,)
 tgorro_vec = np.zeros(100)
 for idx, p2_v in enumerate(p2_lin):
-    tgorro_vec[idx] = tgorro_fun(p2_v,b2_v,q2_v=0.5,r_v=0.1)
+    tgorro_vec[idx] = tgorro_fun(p2_v,b2_v,q2_v=0.5,r_v=0.6)
 
 fig, ax = plt.subplots()
 
