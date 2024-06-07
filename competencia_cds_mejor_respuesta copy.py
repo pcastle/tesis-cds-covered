@@ -7,6 +7,7 @@ import json
 import random
 import multiprocessing as mp
 from shapely.geometry import LineString
+import time
 
 
 
@@ -67,41 +68,66 @@ alp_inv = solve(vf2_2/p2 - vf1/p1,t1)[0]
 d1 = Piecewise((1-tgorro1_n,((tgorro2_2 >= 1) & (p2+r > 1))),(1-tgorro1,((tgorro2_2 >= 1) & (p2+r <= 1))),(integrate(alp,(t1,Min(tgorro1,1),1)),alp_inv.subs(t2,1) >= 1), (integrate(alp,(t1,Min(tgorro1,1),alp_inv.subs(t2,1))) + 1 - alp_inv.subs(t2,1), True))
 d1 = Max(0,Min(1,d1))
 
-d2 = Piecewise((1-tgorro2_2n,(tgorro1 >= 1) & (p2 +r > 1)),(1-r/(p2+r)*tgorro2_2,(tgorro1 >= 1) & (p2 +r <= 1)),
-               (integrate(alp_inv,(t2,Min(tgorro2_2,1),1)) + p2/(p2+r)*tgorro2_2,(alp.subs(t1,1) >= 1) & (p2 + r <= 1)), (integrate(alp_inv,(t2,Min(tgorro2_2,1),alp.subs(t1,1))) + 1 - alp.subs(t1,1) + p2/(p2+r)*tgorro2_2, p2 + r <= 1),
+d2 = Piecewise((1-tgorro2_2n,(tgorro1 >= 1) & (p2 +r > 1)),(1-r/(p2+r)*tgorro2_2*tgorro1,(tgorro1 >= 1) & (p2 +r <= 1)),
+               (integrate(alp_inv,(t2,Min(tgorro2_2,1),1)) + p2/(p2+r)*tgorro2_2*tgorro1,(alp.subs(t1,1) >= 1) & (p2 + r <= 1)), (integrate(alp_inv,(t2,Min(tgorro2_2,1),alp.subs(t1,1))) + 1 - alp.subs(t1,1) + p2/(p2+r)*tgorro2_2*tgorro1, p2 + r <= 1),
                (integrate(alp_inv,(t2,Min(tgorro2_2n,1),1)),(alp.subs(t1,1) >= 1) & (p2 +r > 1)), (integrate(alp_inv,(t2,Min(tgorro2_2n,1),alp.subs(t1,1))) + 1 - alp.subs(t1,1), True))
 d2 = Max(0,Min(1,d2))
 # Esta funcion ya está dividida en r
 d3 = Piecewise((1/(p2+r)*tgorro2_2*tgorro1, (p2 + r <= 1)), (0, True)) # Ya está dividido en r
-d3 = Max(0,Min(1,d3))
-# print(d2)
+d3 = Max(0,Min(1/r,d3))
+
+# start = time.time()
+# print(d2.subs([(p2,0.4),(p1,0.4),(r,0.1),(b1,b1_vec[0]),(b2,b2_vec[0])]),time.time() - start)
+# start = time.time()
+# print(d1.subs([(p2,0.4),(p1,0.4),(r,0.1),(b1,b1_vec[0]),(b2,b2_vec[0])]),time.time() - start)
+# start = time.time()
+# print((r*d3).subs([(p2,0.4),(p1,0.4),(r,0.1),(b1,b1_vec[0]),(b2,b2_vec[0])]),time.time() - start)
 # sympy.plot(d2.subs([(r,0.2),(b2,b2_v),(q2,0.4)]),(p2,0,1))
 
-u1 = integrate(Max(0,Min(1,p1*q1/b1)*y1- q1)*g1.subs(t1,1),(y1,0,1))
+# d2_vec = np.zeros(100)
+# for idx, p2_v in enumerate(np.linspace(b2_vec[0],1,100)):
+#     d2_vec[idx] = d2.subs([(p2,p2_v),(p1,0.4),(r,0.1),(b1,b1_vec[0]),(b2,b2_vec[0])])
+
+# plt.plot(np.linspace(b2_vec[0],1,100),d2_vec)
+# plt.show()
+
+u1 = integrate(Max(0,Min(1,p1*q1/b1)*y1- q1)*3*y1**2,(y1,0,1))
 u2 = integrate(Max(0,Min(1,p2*q2/b2)*y2- q2)*3*y2**2,(y2,0,1))
-u3 = Min(q2,d3)*(r - integrate((1-Min(1,p2/b2*y2))*1,(y2,0,1)))
+u3 = Min(q2,d3)*(r - integrate((1-Min(1,p2/b2*y2))*h3,(y2,0,1)))
 # print(u3.subs([(q2,0.5),(b2,0.3),(p2,0.8),(r,0.2)]))
 
+q2_lam = sympy.lambdify([p2,b1,b2,p1,r], Min(1,d2/p2,b2/p2))
+q1_lam = sympy.lambdify([p2,b1,b2,p1,r], d1/p1)
+
 def f1(x, b1_v, b2_v, p2_v, r_v):
-    fun = u1.subs([(q1,d1/p1),(q2,Min(1,d2/p2,b2/p2)),(b1, b1_v),(b2,b2_v),(p2,p2_v),(r,r_v),(p1,x[0])]).doit()
+    fun = u1.subs([(q1,q1_lam(p2_v,b1_v,b2_v,x[0],r_v)),(q2,q2_lam(p2_v,b1_v,b2_v,x[0],r_v)),(b1, b1_v),(b2,b2_v),(p2,p2_v),(r,r_v),(p1,x[0])]).doit()
     return -1*fun
 
 def res1(x, b1_v, b2_v, p2_v, r_v):
-    fun = d1.subs([(q1,d1/p1),(q2,Min(1,d2/p2,b2/p2)),(b1, b1_v),(b2,b2_v),(p2,p2_v),(r,r_v),(p1,x[0])]).doit()
+    fun = d1.subs([(q1,q1_lam(p2_v,b1_v,b2_v,x[0],r_v)),(q2,q2_lam(p2_v,b1_v,b2_v,x[0],r_v)),(b1, b1_v),(b2,b2_v),(p2,p2_v),(r,r_v),(p1,x[0])]).doit()
     return fun
 
 def f2(x, b1_v, b2_v, p1_v, r_v):
-    fun = u2.subs([(q2,Min(1,d2/p2,b2/p2)),(q1,d1/p1),(b1, b1_v),(b2,b2_v),(p1,p1_v),(r,r_v),(p2,x[0])]).doit()
+    fun = u2.subs([(q2,q2_lam(x[0], b1_v, b2_v, p1_v, r_v)),(q1,q1_lam(x[0], b1_v, b2_v, p1_v, r_v)),(b1, b1_v),(b2,b2_v),(p1,p1_v),(r,r_v),(p2,x[0])]).doit()
     return -1*fun
 
 def res2(x, b1_v, b2_v, p1_v, r_v):
-    fun = d2.subs([(q1,d1/p1),(q2,Min(1,d2/p2,b2/p2)),(b1, b1_v),(b2,b2_v),(p1,p1_v),(p2,x[0]),(r,r_v)]).doit()
+    fun = d2.subs([(q1,q1_lam(x[0], b1_v, b2_v, p1_v, r_v)),(q2,q2_lam(x[0], b1_v, b2_v, p1_v, r_v)),(b1, b1_v),(b2,b2_v),(p1,p1_v),(p2,x[0]),(r,r_v)]).doit()
     return fun
 
 def f3(x, b1_v, b2_v, p1_v ,p2_v):
-    fun1 = (r - integrate((1-Min(1,p2/b2*y2))*1,(y2,0,1))).subs([(q2,Min(1,d2/p2,b2/p2)),(b1,b1_v),(b2,b2_v),(r,x[0]),(p2,p2_v),(p1,p1_v)]).doit() 
-    fun2 =  Min(q2,d3).subs([(q2,Min(1,d2/p2,b2/p2)),(b1,b1_v),(b2,b2_v),(r,x[0]),(p2,p2_v),(p1,p1_v)]).doit()
-    return -1*fun1*fun2
+    # fun1 = (r - integrate((1-Min(1,p2/b2*y2))*h3,(y2,0,1))).subs([(q2,q2_lam(p2_v,b1_v,b2_v,p1_v,x[0])),(b1,b1_v),(b2,b2_v),(r,x[0]),(p2,p2_v),(p1,p1_v)]).doit() 
+    # fun2 =  Min(q2,d3).subs([(q2,q2_lam(p2_v,b1_v,b2_v,p1_v,x[0])),(q1,q1_lam(p2_v,b1_v,b2_v,p1_v,x[0])),(b1,b1_v),(b2,b2_v),(r,x[0]),(p2,p2_v),(p1,p1_v)]).doit()
+    fun1 = u3.subs([(q2,q2_lam(p2_v,b1_v,b2_v,p1_v,x[0])),(q1,q1_lam(p2_v,b1_v,b2_v,p1_v,x[0])),(b1,b1_v),(b2,b2_v),(r,x[0]),(p2,p2_v),(p1,p1_v)]).doit()
+    return -1*fun1
+
+# start = time.time()
+# print(f1([0.4],0.3,0.3,0.4,0.1),time.time() - start)
+# start = time.time()
+# print(f2([0.4],0.3,0.3,0.4,0.1),time.time() - start)
+# start = time.time()
+# print(f3([0.1],0.3,0.3,0.4,0.4),time.time() - start)
+
 
 if __name__ == '__main__':
     for idx in range(len(b1_vec)):
@@ -117,12 +143,15 @@ if __name__ == '__main__':
                     return x0
                 
         def busca_valor_inicial2(p1_v,p2_v,fun_objetivo):
-            vector_valores = np.linspace(0,1-b2_v,100)
+            vector_valores = np.linspace(0.0001,1-b2_v,100)
             for x0 in vector_valores:
                 if fun_objetivo([x0],b1_v,b2_v,p1_v,p2_v) < 1e-4:
                     return x0
 
             return np.nan
+        
+
+        # print(busca_valor_inicial2(0.4,0.4,f3))
 
         def mejor_p1(x):
             p2_v = x[1]
@@ -147,12 +176,12 @@ if __name__ == '__main__':
         def mejor_p2(x):
             p1_v = x[0]
             r_v = x[2]
-            p2_v = busca_valor_inicial(b2_v,p1_v,r_v,f2,res2)
-            p2_v = x[1] if np.isnan(p2_v) else p2_v
+            # p2_v = busca_valor_inicial(b2_v,p1_v,r_v,f2,res2)
+            p2_v = x[1] 
             
 
             # La restriccion no es necesaria
-            # cons2 = ({"type": "ineq", "fun": lambda x: x[0] - res2(x, b1_v, b2_v, p1_v)})
+            cons2 = ({"type": "ineq", "fun": lambda x: x[0] - res2(x, b1_v, b2_v, p1_v)})
             x0_2 = [p2_v]
             result2 = scipy.optimize.minimize(f2,x0_2,args = (b1_v, b2_v, p1_v, r_v), bounds=[(b2_v,1)], tol=1e-10, options={"maxiter" : 1000},method = 'Nelder-Mead')
             output = dict()
@@ -170,10 +199,10 @@ if __name__ == '__main__':
             r_v = x[2] if np.isnan(r_v) else r_v
 
             x0_3 = [r_v]
-            result3 = scipy.optimize.minimize(f3,x0_3,args = (b1_v, b2_v, p1_v, p2_v), bounds=[(0,1)], tol=1e-10, options={"maxiter" : 1000},method = 'Nelder-Mead')
+            result3 = scipy.optimize.minimize(f3,x0_3,args = (b1_v, b2_v, p1_v, p2_v), bounds=[(0,1-b2_v)], tol=1e-10, options={"maxiter" : 1000},method = 'Nelder-Mead')
             output = dict()
-            output["p2"] = p2_v
-            output["p1"] = p1_v
+            output["p_2"] = p2_v
+            output["p_1"] = p1_v
             output["mejor_respuesta"] = result3.x[0]
             output["flag"] = result3.success
             return output
@@ -198,4 +227,7 @@ if __name__ == '__main__':
             print(sol[0],sol[2])
             return return_dict
         
+        # print(mejor_p1([0.4,0.4,0.1]))
+        # print(mejor_p2([0.4,0.4,0.1]))
+        # print(mejor_r([0.4,0.4,0.1]))
         print(busqueda_equilibrio(0.4,0.4,0.1,{}))
