@@ -162,4 +162,5 @@ cython_debug/
 *.pkl
 *.eps
 # *.json
-figuras/
+!figuras/*.txt
+figuras/*.json
