@@ -23,7 +23,7 @@ b2_v = 0.4
 h3 = 3*y2**2
 
 g1 = 3*(1-t1)*(y1-1)**2 + 3*t1*y1**2
-g2 = 3*(1-t2)*(y2-1)**2 + 3*t2*y2**2
+g2 = 3*(1-3/4*t2)*(y2-1)**2 + 3*3/4*t2*y2**2
 
 # Emisor 1
 
@@ -70,17 +70,18 @@ d1 = Piecewise((1-tgorro1_n,((tgorro2_2n >= 1) & (p2+r > 1))),(1-tgorro1,((tgorr
                 (integrate(alp,(t1,Min(tgorro1_n,1),1)),(alp_inv.subs(t2,1) >= 1) & (p2 + r > 1)),
                (integrate(alp,(t1,Min(tgorro1,1),alp_inv.subs(t2,1))) + 1 - alp_inv.subs(t2,1), (p2 + r <= 1)),
                (integrate(alp,(t1,Min(tgorro1_n,1),alp_inv.subs(t2,1))) + 1 - alp_inv.subs(t2,1), True))
-d1 = Max(0,Min(1,d1))
+d1 = Max(0,Min(1,d1))   
 
 d2 = Piecewise((1-tgorro2_2n,(tgorro1 >= 1) & (p2 +r > 1)),(1-r/(p2+r)*tgorro2_2*tgorro1,(tgorro1 >= 1) & (p2 +r <= 1)),
-               (integrate(alp_inv,(t2,Min(tgorro2_2,1),1)) + p2/(p2+r)*tgorro2_2*tgorro1,(alp.subs(t1,1) >= 1) & (p2 + r <= 1)), (integrate(alp_inv,(t2,Min(tgorro2_2,1),alp.subs(t1,1))) + 1 - alp.subs(t1,1) + p2/(p2+r)*tgorro2_2*tgorro1, p2 + r <= 1),
-               (integrate(alp_inv,(t2,Min(tgorro2_2n,1),1)),(alp.subs(t1,1) >= 1) & (p2 +r > 1)), (integrate(alp_inv,(t2,Min(tgorro2_2n,1),alp.subs(t1,1))) + 1 - alp.subs(t1,1), True))
+               (integrate(alp_inv,(t2,Min(tgorro2_2,1),1)) + p2/(p2+r)*tgorro2_2*tgorro1,(alp.subs(t1,1) >= 1) & (p2 + r <= 1)), 
+               (integrate(alp_inv,(t2,Min(tgorro2_2,1),alp.subs(t1,1))) + 1 - alp.subs(t1,1) + p2/(p2+r)*tgorro2_2*tgorro1, p2 + r <= 1),
+               (integrate(alp_inv,(t2,Min(tgorro2_2n,1),1)),(alp.subs(t1,1) >= 1) & (p2 +r > 1)), 
+               (integrate(alp_inv,(t2,Min(tgorro2_2n,1),alp.subs(t1,1))) + 1 - alp.subs(t1,1), True))
 d2 = Max(0,Min(1,d2))
 # Esta funcion ya está dividida en r
 d3 = Piecewise((1/(p2+r)*tgorro2_2*tgorro1, (p2 + r <= 1)), (0, True)) # Ya está dividido en r
 d3 = Max(0,Min(1/r,d3))
 
-# print(d1.subs([(p2,0.3)]))
 # start = time.time()
 # print(d2.subs([(p2,0.4),(p1,0.4),(r,0.1),(b1,b1_vec[0]),(b2,b2_vec[0])]),time.time() - start)
 # start = time.time()
@@ -111,7 +112,6 @@ d2_fun = sympy.lambdify([p2,q2,b1,b2,p1,q1,r],d2)
 u1_fun = sympy.lambdify([p1,q1,b1,b2,p2,q2,r],u1)
 u2_fun = sympy.lambdify([p2,q2,b1,b2,p1,q1,r],u2)
 u3_fun = sympy.lambdify([r,b1,b2,p1,q1,p2,q2],u3)
-
 
 # print(u2)
 # print(u3)
@@ -270,24 +270,149 @@ def busqueda_equilibrio(x0_1,x0_2,x0_3):
     print(sol[0],sol[2])
     return resultado
 
-
 if __name__ == '__main__':
-    
-    # start = time.time()
-    # print(mejor_p1([0.4,0.4,0.1]), time.time() - start)
-    # start = time.time()
-    # print(mejor_p2([0.4,0.4,0.1]), time.time() - start)
-    # start = time.time()
-    # print(mejor_r([0.4,0.4,0.1]), time.time() - start)
-    pool = mp.Pool(processes=6)
 
-    # equilibrio = pool.starmap(busqueda_equilibrio, [[x0_1,x0_2,x0_3] for x0_1 in np.linspace(b1_v,1,5) for x0_2 in np.linspace(b2_v,1,5) for x0_3 in np.linspace(0,1-b2_v,5)])
-    # # equilibrio = {**equilibrio}
-    # with open(f'figuras/equilibrios_competencia_b1_{b1_v}_b2_{b2_v}.txt', 'w') as f:
-    #         for s in equilibrio:
-    #             f.write(str(s) + '\n')
+    pool = mp.Pool(processes=12)
+    lin_space = np.linspace(0,1,1200)
+    x0_r = lin_space[lin_space <= 1-b2_v]
+    x0_p2 = lin_space[lin_space >= b2_v]
+    x0_p1 = lin_space[lin_space >= b1_v]
 
-    print(busqueda_equilibrio(0.84293347, 0.8200042,  0.1799958),
-          mejor_p1([0.84293347, 0.8200042,  0.1799958]),
-          mejor_p2([0.84293347, 0.8200042,  0.1799958]),
-          mejor_r([0.84293347, 0.8200042,  0.1799958]))
+    # Se fija un precio de equilibrio
+    # print(busqueda_equilibrio(0.86816976, 0.8553574, 0.1446426))
+    # p1_v, p2_v, r_v = 0.86816976, 0.8553574, 0.1446426
+
+    print(busqueda_equilibrio(0.87028662, 0.90163476, 0.09836524))
+    p1_v, p2_v, r_v = 0.87028662, 0.90163476, 0.09836524
+
+    print("Calculando A2 Fijando p_1")
+    pool = mp.Pool(processes=12)
+    # result2 = [pool.apply(mejor_p2, args = ([1-x0_3,x0_3],)) for x0_3 in x0_r]
+    result2 = pool.starmap(mejor_p2, [[(p1_v,0.9,x0_3)] for x0_3 in x0_r ])
+
+    print("Calculando A3 Fijando p_1")
+    pool = mp.Pool(processes=12)
+    # result3 = [pool.apply(mejor_r, args = ([x0_2,0.1],)) for x0_2 in x0_p2]
+    result3 = pool.starmap(mejor_r, [[(p1_v,x0_2,0.1)] for x0_2 in x0_p2 ])
+
+
+    X1 = [x["r"] if (x['flag']) else np.nan for x in result2]
+    Y1 = [x["mejor_respuesta"] if (x['flag']) else np.nan for x in result2]
+
+    # print(result2)
+    X2 = [x['mejor_respuesta'] if (x['flag']) else np.nan for x in result3]
+    Y2 = [x['p_2'] if (x['flag']) else np.nan for x in result3]
+
+    fig, ax = plt.subplots()
+
+
+    ax.plot(X1,Y1,'k' ,label = f'$p_2^*(p_1 = {p1_v:5.4f},r)$')
+    ax.plot(X2,Y2, '--',color = 'orange' ,label = f'$r^*(p_1 = {p1_v:5.4f}, p_2)$')
+    # ax.plot(r_eq,p2_eq,'r',alpha=.9)
+
+    ax.set(ylabel = 'precio de $\\mathcal{A}_2 (p_2)$',
+        xlabel = 'precio de $\\mathcal{A}_3 (r)$')
+
+    first_line = LineString(np.column_stack((X1, Y1)))
+    second_line = LineString(np.column_stack((X2, Y2)))
+    intersection = first_line.intersection(second_line)
+    # print(intersection)
+    if intersection.geom_type == 'MultiPoint':
+        plt.plot(*LineString(intersection).xy, 'r.', markersize = 10)
+        # print(*LineString(intersection).xy)
+    elif intersection.geom_type == 'Point':
+        plt.plot(*intersection.xy, 'r.')
+        # print(*intersection.xy[0],*intersection.xy[1])
+    ax.legend()
+    plt.plot(*(r_v,p2_v),'b.')
+
+    # Se añade un grilla
+    ax.grid(color = '0.95')
+    # plt.show()
+    plt.savefig(f'figuras/competencia_cds_mejor_respuesta_uniforme_b1_{b1_v}_b2_{b2_v}_pesimismo_1.eps',format='eps')
+
+    print("Calculando A1 Fijando p_2")
+    pool = mp.Pool(processes=12)
+    result1 = pool.starmap(mejor_p1, [[(0.9,p2_v,x0_3)] for x0_3 in x0_r ])
+
+    print("Calculando A3 Fijando p_2")
+    pool = mp.Pool(processes=12)
+    result3 = pool.starmap(mejor_r, [[(x0_1,p2_v,0.1)] for x0_1 in x0_p1 ])
+
+    X1 = [x["r"] if (x['flag']) else np.nan for x in result1]
+    Y1 = [x["mejor_respuesta"] if (x['flag']) else np.nan for x in result1]
+
+    # print(result2)
+    X2 = [x['mejor_respuesta'] if (x['flag']) else np.nan for x in result3]
+    Y2 = [x['p_1'] if (x['flag']) else np.nan for x in result3]
+
+    fig, ax = plt.subplots()
+
+
+    ax.plot(X1,Y1,'k' ,label = f'$p_1^*(p_2 = {p2_v:5.4f},r)$')
+    ax.plot(X2,Y2, '--',color = 'orange' ,label = f'$r^*(p_1,p_2 = {p2_v:5.4f})$')
+    # ax.plot(r_eq,p2_eq,'r',alpha=.9)
+
+    ax.set(ylabel = 'precio de $\\mathcal{A}_1 (p_1)$',
+        xlabel = 'precio de $\\mathcal{A}_3 (r)$')
+
+    first_line = LineString(np.column_stack((X1, Y1)))
+    second_line = LineString(np.column_stack((X2, Y2)))
+    intersection = first_line.intersection(second_line)
+    # print(intersection)
+    if intersection.geom_type == 'MultiPoint':
+        plt.plot(*LineString(intersection).xy, 'r.', markersize = 10)
+        # print(*LineString(intersection).xy)
+    elif intersection.geom_type == 'Point':
+        plt.plot(*intersection.xy, 'r.')
+        # print(*intersection.xy[0],*intersection.xy[1])
+    ax.legend()
+    plt.plot(*(r_v,p1_v),'b.')
+
+    # Se añade un grilla
+    ax.grid(color = '0.95')
+    # plt.show()
+    plt.savefig(f'figuras/competencia_cds_mejor_respuesta_uniforme_b1_{b1_v}_b2_{b2_v}_pesimismo_2.eps',format='eps')
+
+    print("Calculando A1 Fijando r")
+    pool = mp.Pool(processes=12)
+    result1 = pool.starmap(mejor_p1, [[(0.9,x0_2,r_v)] for x0_2 in x0_p2 ])
+
+    print("Calculando A2 Fijando r")
+    pool = mp.Pool(processes=12)
+    result2 = pool.starmap(mejor_p2, [[(x0_1,0.9,r_v)] for x0_1 in x0_p1 ])
+
+    X1 = [x["p_2"] if (x['flag']) else np.nan for x in result1]
+    Y1 = [x["mejor_respuesta"] if (x['flag']) else np.nan for x in result1]
+
+    # print(result2)
+    X2 = [x['mejor_respuesta'] if (x['flag']) else np.nan for x in result2]
+    Y2 = [x['p_1'] if (x['flag']) else np.nan for x in result2]
+
+    fig, ax = plt.subplots()
+
+
+    ax.plot(X1,Y1,'k' ,label = f'$p_1^*(p_2,r = {r_v:5.4f})$')
+    ax.plot(X2,Y2, '--',color = 'orange' ,label = f'$p_2^*(p_1,r = {r_v:5.4f})$')
+    # ax.plot(r_eq,p2_eq,'r',alpha=.9)
+
+    ax.set(ylabel = 'precio de $\\mathcal{A}_1 (p_1)$',
+        xlabel = 'precio de $\\mathcal{A}_2 (p_2)$')
+
+    first_line = LineString(np.column_stack((X1, Y1)))
+    second_line = LineString(np.column_stack((X2, Y2)))
+    intersection = first_line.intersection(second_line)
+    # print(intersection)
+    if intersection.geom_type == 'MultiPoint':
+        plt.plot(*LineString(intersection).xy, 'r.', markersize = 10)
+        # print(*LineString(intersection).xy)
+    elif intersection.geom_type == 'Point':
+        plt.plot(*intersection.xy, 'r.')
+        # print(*intersection.xy[0],*intersection.xy[1])
+    ax.legend()
+    plt.plot(*(p2_v,p1_v),'b.')
+
+    # Se añade un grilla
+    ax.grid(color = '0.95')
+    # plt.show()
+    plt.savefig(f'figuras/competencia_cds_mejor_respuesta_uniforme_b1_{b1_v}_b2_{b2_v}_pesimismo_3.eps',format='eps')
