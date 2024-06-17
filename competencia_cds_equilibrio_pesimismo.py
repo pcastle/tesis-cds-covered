@@ -23,7 +23,7 @@ b2_v = 0.4
 h3 = 3*y2**2
 
 g1 = 3*(1-t1)*(y1-1)**2 + 3*t1*y1**2
-g2 = 3*(1-t2)*(y2-1)**2 + 3*t2*y2**2
+g2 = 3*(1-3/4*t2)*(y2-1)**2 + 3*3/4*t2*y2**2
 
 # Emisor 1
 
@@ -279,15 +279,15 @@ if __name__ == '__main__':
     # print(mejor_p2([0.4,0.4,0.1]), time.time() - start)
     # start = time.time()
     # print(mejor_r([0.4,0.4,0.1]), time.time() - start)
-    pool = mp.Pool(processes=6)
+    pool = mp.Pool(processes=12)
 
-    # equilibrio = pool.starmap(busqueda_equilibrio, [[x0_1,x0_2,x0_3] for x0_1 in np.linspace(b1_v,1,5) for x0_2 in np.linspace(b2_v,1,5) for x0_3 in np.linspace(0,1-b2_v,5)])
-    # # equilibrio = {**equilibrio}
-    # with open(f'figuras/equilibrios_competencia_b1_{b1_v}_b2_{b2_v}.txt', 'w') as f:
-    #         for s in equilibrio:
-    #             f.write(str(s) + '\n')
+    equilibrio = pool.starmap(busqueda_equilibrio, [[x0_1,x0_2,x0_3] for x0_1 in np.linspace(b1_v,1,5) for x0_2 in np.linspace(b2_v,1,5) for x0_3 in np.linspace(0,1-b2_v,5)])
+    # equilibrio = {**equilibrio}
+    with open(f'figuras/equilibrios_competencia_b1_{b1_v}_b2_{b2_v}_pesimismo.txt', 'w') as f:
+            for s in equilibrio:
+                f.write(str(s) + '\n')
 
-    print(busqueda_equilibrio(0.84293347, 0.8200042,  0.1799958),
-          mejor_p1([0.84293347, 0.8200042,  0.1799958]),
-          mejor_p2([0.84293347, 0.8200042,  0.1799958]),
-          mejor_r([0.84293347, 0.8200042,  0.1799958]))
+    # print(busqueda_equilibrio(0.84293347, 0.8200042,  0.1799958),
+    #       mejor_p1([0.84293347, 0.8200042,  0.1799958]),
+    #       mejor_p2([0.84293347, 0.8200042,  0.1799958]),
+    #       mejor_r([0.84293347, 0.8200042,  0.1799958]))
