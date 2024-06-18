@@ -39,7 +39,7 @@ def plotIssuedAmountIntroCDS(b2_v,r_v,g2,n = 100, savePath = 'figuras/intro_cds_
                 (1 - r/(p2 +r)*tgorro2_1, (p2 + r <= 1) & (p2*q2 > b2)),
                 (1-tgorro2_2n,(p2 + r > 1) & (p2*q2 <= b2)),
                 (1-tgorro2_1n,True))
-    # d2 = Max(0,Min(1,d2))
+    d2 = Max(0,Min(1,d2))
 
     d2_fun = sympy.lambdify([p2, q2], d2.subs([(b2,b2_v),(r,r_v)]) - p2*q2)
     lin_space = np.linspace(0.0001,1,n)
