@@ -3,11 +3,7 @@ from sympy import Derivative, simplify, Piecewise, Min, Max, integrate, pycode, 
 import scipy
 import numpy as np
 import matplotlib.pyplot as plt
-import json
-import random
 import multiprocess as mp
-from shapely.geometry import LineString
-import time
 
 
 # setup
@@ -203,7 +199,7 @@ def searchEquilibriumCompCDS(b1_v,b2_v,g1,g2,h1,h2,h3,nProcess = 12,
 
 if __name__ == '__main__':
     b1_v = 0.3
-    b2_v = 0.4
+    b2_v = 0.3
     h1 = 3*y1**2
     h2 = 3*y2**2
     h3_esc1 = 3*y2**2
@@ -214,4 +210,13 @@ if __name__ == '__main__':
     g2_pesimista = 3*(1-3/4*t2)*(y2-1)**2 + 3*3/4*t2*y2**2
     
     searchEquilibriumCompCDS(b1_v,b2_v,g1,g2_base,h1,h2,h3_esc1,nProcess=6,aditional='_base_esc1')
+    searchEquilibriumCompCDS(b1_v,b2_v,g1,g2_base,h1,h2,h3_esc2,nProcess=6,aditional='_base_esc2')
+    searchEquilibriumCompCDS(b1_v,b2_v,g1,g2_pesimista,h1,h2,h3_esc1,nProcess=6,aditional='_pesimista_esc1')
+    searchEquilibriumCompCDS(b1_v,b2_v,g1,g2_pesimista,h1,h2,h3_esc2,nProcess=6,aditional='_pesimista_esc2')
+
+    b2_v = 0.4
+    searchEquilibriumCompCDS(b1_v,b2_v,g1,g2_base,h1,h2,h3_esc1,nProcess=6,aditional='_base_esc1')
+    searchEquilibriumCompCDS(b1_v,b2_v,g1,g2_base,h1,h2,h3_esc2,nProcess=6,aditional='_base_esc2')
+    searchEquilibriumCompCDS(b1_v,b2_v,g1,g2_pesimista,h1,h2,h3_esc1,nProcess=6,aditional='_pesimista_esc1')
+    searchEquilibriumCompCDS(b1_v,b2_v,g1,g2_pesimista,h1,h2,h3_esc2,nProcess=6,aditional='_pesimista_esc2')
     
