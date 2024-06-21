@@ -37,7 +37,8 @@ tgorro2 = solve(vf2 - p2,t2)[0]
 alp = solve(vf2/p2 - vf1/p1,t2)[0]
 alp_inv = solve(vf2/p2 - vf1/p1,t1)[0]
 
-d1 = Piecewise((integrate(alp,(t1,Min(tgorro1,1),1)),alp_inv.subs(t2,1) >= 1), (integrate(alp,(t1,Min(tgorro1,1),alp_inv.subs(t2,1))) + 1 - alp_inv.subs(t2,1), True))
+d1 = Piecewise((integrate(alp,(t1,Min(tgorro1,1),1)),alp_inv.subs(t2,1) >= 1),
+                (integrate(alp,(t1,Min(tgorro1,1),alp_inv.subs(t2,1))) + 1 - alp_inv.subs(t2,1), True))
 d2 = Piecewise((integrate(alp_inv,(t2,Min(tgorro2,1),1)),alp.subs(t1,1) >= 1), (integrate(alp_inv,(t2,Min(tgorro2,1),alp.subs(t1,1))) + 1 - alp.subs(t1,1), True))
 
 u1 = integrate(Max(0,Min(1,p1*q1/b1)*y1- q1)*g1.subs(t1,1),(y1,0,1))

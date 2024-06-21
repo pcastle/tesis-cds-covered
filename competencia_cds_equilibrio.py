@@ -113,7 +113,7 @@ def searchEquilibriumCompCDS(b1_v,b2_v,g1,g2,h1,h2,h3,nProcess = 12,
     def busca_valor_inicial2(p1_v,p2_v,fun_objetivo):
         vector_valores = np.linspace(0.0001,1-b2_v,100)
         for x0 in vector_valores:
-            if fun_objetivo([x0],b1_v,b2_v,p1_v,p2_v) < 1e-4:
+            if fun_objetivo([x0],b1_v,b2_v,p1_v,p2_v) <= 0:
                 return x0
 
         return np.nan
@@ -192,9 +192,18 @@ def searchEquilibriumCompCDS(b1_v,b2_v,g1,g2,h1,h2,h3,nProcess = 12,
     
     pool = mp.Pool(processes=nProcess)
     equilibrio = pool.starmap(busqueda_equilibrio, [[x0_1,x0_2,x0_3] for x0_1 in np.linspace(b1_v,1,nP1) for x0_2 in np.linspace(b2_v,1,nP2) for x0_3 in np.linspace(0,1-b2_v,nR)])
+    
+    for idx, x in enumerate(equilibrio):
+        if not np.all(np.isnan(x)):
+            res = busqueda_equilibrio(x[0],x[1],x[2])
+            print(res[0],res[1],res[2])
+            if np.all(res != x):
+                equilibrio[idx] = np.nan
+    
     with open(f'{savePath}/equilibrios_competencia_b1_{b1_v}_b2_{b2_v}{aditional}.txt', 'w') as f:
             for s in equilibrio:
                 f.write(str(s) + '\n')
+
 
 
 if __name__ == '__main__':
@@ -209,14 +218,14 @@ if __name__ == '__main__':
     g2_base = 3*(1-t2)*(y2-1)**2 + 3*t2*y2**2
     g2_pesimista = 3*(1-3/4*t2)*(y2-1)**2 + 3*3/4*t2*y2**2
     
-    searchEquilibriumCompCDS(b1_v,b2_v,g1,g2_base,h1,h2,h3_esc1,nProcess=6,aditional='_base_esc1')
-    searchEquilibriumCompCDS(b1_v,b2_v,g1,g2_base,h1,h2,h3_esc2,nProcess=6,aditional='_base_esc2')
-    searchEquilibriumCompCDS(b1_v,b2_v,g1,g2_pesimista,h1,h2,h3_esc1,nProcess=6,aditional='_pesimista_esc1')
-    searchEquilibriumCompCDS(b1_v,b2_v,g1,g2_pesimista,h1,h2,h3_esc2,nProcess=6,aditional='_pesimista_esc2')
+    # searchEquilibriumCompCDS(b1_v,b2_v,g1,g2_base,h1,h2,h3_esc1,nProcess=12,aditional='_base_esc1')
+    searchEquilibriumCompCDS(b1_v,b2_v,g1,g2_base,h1,h2,h3_esc2,nProcess=12,aditional='_base_esc2')
+    # searchEquilibriumCompCDS(b1_v,b2_v,g1,g2_pesimista,h1,h2,h3_esc1,nProcess=12,aditional='_pesimista_esc1')
+    # searchEquilibriumCompCDS(b1_v,b2_v,g1,g2_pesimista,h1,h2,h3_esc2,nProcess=12,aditional='_pesimista_esc2')
 
-    b2_v = 0.4
-    searchEquilibriumCompCDS(b1_v,b2_v,g1,g2_base,h1,h2,h3_esc1,nProcess=6,aditional='_base_esc1')
-    searchEquilibriumCompCDS(b1_v,b2_v,g1,g2_base,h1,h2,h3_esc2,nProcess=6,aditional='_base_esc2')
-    searchEquilibriumCompCDS(b1_v,b2_v,g1,g2_pesimista,h1,h2,h3_esc1,nProcess=6,aditional='_pesimista_esc1')
-    searchEquilibriumCompCDS(b1_v,b2_v,g1,g2_pesimista,h1,h2,h3_esc2,nProcess=6,aditional='_pesimista_esc2')
+    # b2_v = 0.4
+    # searchEquilibriumCompCDS(b1_v,b2_v,g1,g2_base,h1,h2,h3_esc1,nProcess=12,aditional='_base_esc1')
+    # searchEquilibriumCompCDS(b1_v,b2_v,g1,g2_base,h1,h2,h3_esc2,nProcess=12,aditional='_base_esc2')
+    # searchEquilibriumCompCDS(b1_v,b2_v,g1,g2_pesimista,h1,h2,h3_esc1,nProcess=12,aditional='_pesimista_esc1')
+    # searchEquilibriumCompCDS(b1_v,b2_v,g1,g2_pesimista,h1,h2,h3_esc2,nProcess=12,aditional='_pesimista_esc2')
     

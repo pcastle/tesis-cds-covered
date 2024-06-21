@@ -17,7 +17,6 @@ t1, t2 = sympy.symbols('t1 t2', positive=True)
 def plotBestResponceCompCDS(b1_v,b2_v,p1_v, p2_v, r_v,g1,g2,h1,h2,h3, 
                             n_processors = 12,n_lin = 1000, savePath = 'figuras/competencia_cds/',
                             aditional = ''):
-    globals
     t1, t2 = sympy.symbols('t1 t2', positive=True)
     # Emisor 1
     vf1 = parse_expr((pycode(integrate(Min(p1*y1/b1,1)*g1,(y1,0,1)))).replace("min(1, b1/p1)","(b1/p1)"), locals())
@@ -326,6 +325,16 @@ def plotBestResponceCompCDS(b1_v,b2_v,p1_v, p2_v, r_v,g1,g2,h1,h2,h3,
     # plt.show()
     plt.savefig(f'{savePath}mejor_respuesta_b1_{b1_v}_b2_{b2_v}_3{aditional}.eps',format='eps')
 
+    result_dict = {"b1": b1_v,
+                   "b2": b2_v,
+                   "p1": p1_v,
+                   "p2": p2_v,
+                   "r": r_v,
+                   "u1": -1*f1([p1_v],b1_v,b2_v,p2_v,r_v),
+                   "u2": -1*f2([p2_v],b1_v,b2_v,p1_v,r_v),
+                   "u3": -1*f3([r_v],b1_v,b2_v,p1_v,p2_v)}
+    return result_dict
+
 
 
 if __name__ == '__main__':
@@ -336,39 +345,54 @@ if __name__ == '__main__':
 
     g1 = 3*(1-t1)*(y1-1)**2 + 3*t1*y1**2
     g2_base = 3*(1-t2)*(y2-1)**2 + 3*t2*y2**2
-    g2_pesimista = 3*(1-t2)*(y2-1)**2 + 3*t2*y2**2
+    g2_pesimista = 3*(1-3/4*t2)*(y2-1)**2 + 3*3/4*t2*y2**2
 
     b1_v = 0.3
     b2_v = 0.3
-    plotBestResponceCompCDS(b1_v,b2_v,0.84115538, 0.84544327, 0.15455673,g1,g2_base,h1,h2,h3_esc1,n_lin=1200,
-                            aditional='_base_esc1')
-    plotBestResponceCompCDS(b1_v,b2_v,0.84115538, 0.84544327, 0.15455673,g1,g2_base,h1,h2,h3_esc2,n_lin=1200,
+    result = dict()
+    
+    # result["res1"] = plotBestResponceCompCDS(b1_v,b2_v,0.86618168, 0.93785456, 0.06214544,g1,g2_base,h1,h2,h3_esc1,n_lin=1200,
+    #                         aditional='_base_esc1')
+    result["res2"] = plotBestResponceCompCDS(b1_v,b2_v,0.8383179182521371, 0.8383179188267246, 0.1627030303030303,g1,g2_base,h1,h2,h3_esc2,n_lin=1200,
                             aditional='_base_esc2')
-    plotBestResponceCompCDS(b1_v,b2_v,0.84115538, 0.84544327, 0.15455673,g1,g2_pesimista,h1,h2,h3_esc1,n_lin=1200,
-                            aditional='_pesimista_esc1')
-    plotBestResponceCompCDS(b1_v,b2_v,0.84115538, 0.84544327, 0.15455673,g1,g2_pesimista,h1,h2,h3_esc2,n_lin=1200,
-                            aditional='_pesimista_esc2')
+    # result["res3"] = plotBestResponceCompCDS(b1_v,b2_v,0.87028662, 0.95057993, 0.04942007,g1,g2_pesimista,h1,h2,h3_esc1,n_lin=1200,
+    #                         aditional='_pesimista_esc1')
+    # result["res4"] = plotBestResponceCompCDS(b1_v,b2_v,0.84078492, 0.75172118, 0.24827882,g1,g2_pesimista,h1,h2,h3_esc2,n_lin=1200,
+    #                         aditional='_pesimista_esc2')
  
     b1_v = 0.3
     b2_v = 0.4
-    plotBestResponceCompCDS(b1_v,b2_v,0.84293347, 0.8200042,  0.1799958,g1,g2_base,h1,h2,h3_esc1,n_lin=1200,
-                            aditional='_base_esc1')
-    plotBestResponceCompCDS(b1_v,b2_v,0.84293347, 0.8200042,  0.1799958,g1,g2_base,h1,h2,h3_esc2,n_lin=1200,
-                            aditional='_base_esc2')
-    plotBestResponceCompCDS(b1_v,b2_v,0.84293347, 0.8200042,  0.1799958,g1,g2_pesimista,h1,h2,h3_esc1,n_lin=1200,
-                            aditional='_pesimista_esc1')
-    plotBestResponceCompCDS(b1_v,b2_v,0.84293347, 0.8200042,  0.1799958,g1,g2_pesimista,h1,h2,h3_esc2,n_lin=1200,
-                            aditional='_pesimista_esc2')
+    # result["res5"] = plotBestResponceCompCDS(b1_v,b2_v,0.86901544, 0.9481317,  0.0518683 ,g1,g2_base,h1,h2,h3_esc1,n_lin=1200,
+    #                         aditional='_base_esc1')
+    # result["res6"] = plotBestResponceCompCDS(b1_v,b2_v,0.8030591,  0.70824302, 0.29175698,g1,g2_base,h1,h2,h3_esc2,n_lin=1200,
+    #                         aditional='_base_esc2')
+    # result["res7"] = plotBestResponceCompCDS(b1_v,b2_v,0.86032267, 0.75856898, 0.24143102,g1,g2_pesimista,h1,h2,h3_esc1,n_lin=1200,
+    #                         aditional='_pesimista_esc1')
+    # result["res8"] = plotBestResponceCompCDS(b1_v,b2_v,0.82285822, 0.63512424, 0.36487576,g1,g2_pesimista,h1,h2,h3_esc2,n_lin=1200,
+    #                         aditional='_pesimista_esc2')
 
-
-
-    # p1_v, p2_v, r_v = 0.84293347, 0.8200042,  0.1799958
-
-
-
-
-
-
-    # # Se añade un grilla
-
-
+print(result)
+# {   'res1': 
+#  {'b1': 0.3, 'b2': 0.3, 'p1': 0.86618168, 'p2': 0.93785456, 'r': 0.06214544,
+#   'u1': 0.4072497275936395, 'u2': 0.432738455453565, 'u3': 0.01726154454643499},
+#     'res2': 
+#  {'b1': 0.3, 'b2': 0.3, 'p1': 0.8383179182521371, 'p2': 0.8383179188267246, 'r': 0.1627030303030303, 
+#   'u1': 0.3962405932271251, 'u2': 0.3962405955910888, 'u3': -0.0},
+#     'res3': 
+#  {'b1': 0.3, 'b2': 0.3, 'p1': 0.87028662, 'p2': 0.95057993, 'r': 0.04942007, 
+#   'u1': 0.40881598503055816, 'u2': 0.4368832904913984, 'u3': 0.013116709508601608}, 
+#     'res4': 
+#  {'b1': 0.3, 'b2': 0.3, 'p1': 0.84078492, 'p2': 0.75172118, 'r': 0.24827882,
+#   'u1': 0.39724269695621217, 'u2': 0.357257446762147, 'u3': 0.019450064088554667},
+#     'res5': 
+#  {'b1': 0.3, 'b2': 0.4, 'p1': 0.86901544, 'p2': 0.9481317, 'r': 0.0518683,
+#   'u1': 0.4083324357608367, 'u2': 0.3360373188708761, 'u3': 0.013962681129123845}, 
+#     'res6': 
+#  {'b1': 0.3, 'b2': 0.4, 'p1': 0.87028662, 'p2': 0.9938404, 'r': 0.0061596, 
+#    'u1': 0.38129743441804304, 'u2': 0.21065822173833848, 'u3': 0.002810412369153256},
+#     'res7': 
+#  {'b1': 0.3, 'b2': 0.4, 'p1': 0.86032267, 'p2': 0.75856898, 'r': 0.24143102,
+#   'u1': 0.40499002007860024, 'u2': 0.2420198969317361, 'u3': 0.10798010306826382}, 
+#     'res8': 
+#  {'b1': 0.3, 'b2': 0.4, 'p1': 0.82285822, 'p2': 0.63512424, 'r': 0.36487576,
+#   'u1': 0.3898341190790653, 'u2': 0.15953388906752364, 'u3': 0.01795900972390082}}
