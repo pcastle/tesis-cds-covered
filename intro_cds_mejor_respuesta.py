@@ -94,7 +94,9 @@ def plotBestResponceIntroCDS(b2_v,g2,h2,h3,nProcess = 12,
 
         cons2 = ({"type": "ineq", "fun": lambda x: 1 - res(x[0],r_v)})
         x0_2 = [p2_v]
-        result2 = scipy.optimize.minimize(f2,x0_2,args = (b2_v, r_v), bounds=[(0,1)], tol=1e-10, options={"maxiter" : 1000},method = 'Nelder-Mead')
+        result2 = scipy.optimize.direct(f2,bounds=[(b2_v,1)], args = (b2_v, r_v), maxfun=100000, maxiter = 100000)
+        # print(result2)
+        # result2 = scipy.optimize.minimize(f2,x0_2,args = (b2_v, r_v), bounds=[(0,1)], tol=1e-10, options={"maxiter" : 1000},method = 'Nelder-Mead')
         output = dict()
         output["r"] = r_v
         output["mejor_respuesta"] = result2.x[0]
@@ -108,11 +110,17 @@ def plotBestResponceIntroCDS(b2_v,g2,h2,h3,nProcess = 12,
 
         cons3 = ({'type': 'ineq', 'fun': lambda x: 1 - res(p2_v,x[0])})
         x0_3 = [r_v]
-        result3 = scipy.optimize.minimize(f3,x0_3,args = (b2_v, p2_v), bounds=[(0,1)], tol=1e-10, options={"maxiter" : 1000},method = 'Nelder-Mead')
+        # result3 = scipy.optimize.differential_evolution(f3,bounds=[(0,1-b2_v)],args = (b2_v, p2_v), maxiter = 100000)
+        result3 = scipy.optimize.shgo(f3,bounds=[(0,1-b2_v)],args = (b2_v, p2_v))
+        # result3 = scipy.optimize.minimize(f3,x0_3,args = (b2_v, p2_v), bounds=[(0,1)], tol=1e-10, options={"maxiter" : 1000},method = 'Nelder-Mead')
+        print(result3.x[0],result3.fun)
+        if result3.fun == 0:
+            print(result3)
         output = dict()
         output["p2"] = p2_v
         output["mejor_respuesta"] = result3.x[0]
         output["flag"] = result3.success
+        output["fun"] = result3.fun
         return output
 
     def correspondencia(x):
@@ -147,12 +155,12 @@ def plotBestResponceIntroCDS(b2_v,g2,h2,h3,nProcess = 12,
     Y1 = [x["mejor_respuesta"] if (x['flag']) else np.nan for x in result2]
 
     # print(result2)
-    X2 = [x['mejor_respuesta'] if (x['flag']) else np.nan for x in result3]
-    Y2 = [x['p2'] if (x['flag']) else np.nan for x in result3]
+    X2 = [x['mejor_respuesta'] if (x['flag'] or x['fun'] == 0) else np.nan for x in result3]
+    Y2 = [x['p2'] if (x['flag'] or x['fun'] == 0) else np.nan for x in result3]
 
     fig, ax = plt.subplots()
     ax.plot(X1,Y1,'k' ,label = '$p_2^*(r)$')
-    ax.plot(X2,Y2, 'k--' ,label = '$r^*(p_2)$')
+    ax.plot(X2,Y2, '--',color = 'orange', label = '$r^*(p_2)$')
     # ax.plot(r_eq,p2_eq,'r',alpha=.9)
 
     ax.set(ylabel = 'precio de $\\mathcal{A}_2 (p_2)$',
@@ -161,7 +169,7 @@ def plotBestResponceIntroCDS(b2_v,g2,h2,h3,nProcess = 12,
     first_line = LineString(np.column_stack((X1, Y1)))
     second_line = LineString(np.column_stack((X2, Y2)))
     intersection = first_line.intersection(second_line)
-    # print(intersection)
+    # print(first_line,second_line)
     if intersection.geom_type == 'MultiPoint':
         x, y = zip(*[(point.x, point.y) for point in intersection.geoms])
         plt.plot(x, y, 'ro')
@@ -174,7 +182,7 @@ def plotBestResponceIntroCDS(b2_v,g2,h2,h3,nProcess = 12,
 
     # Se añade un grilla
     ax.grid(color = '0.95')
-    plt.savefig(f'figuras/intro_cds_mejor_resupuesta_b_{b2_v}.eps', format = 'eps')
+    plt.savefig(f'figuras/intro_cds_mejor_resupuesta_b_{b2_v}{aditional}.png', format = 'png')
 
     resultado_1 = {f'r_{x["r"]}' : f'{x["mejor_respuesta"]}' for x in result2}
     resultado_2 = {f'p2_{y["p2"]}' : f'{y["mejor_respuesta"]}' for y in result3}
@@ -195,6 +203,12 @@ if __name__ == '__main__':
 
     g2 = 3*(1-t2)*(y2-1)**2 + 3*t2*y2**2
 
-    plotBestResponceIntroCDS(b2_vec[0],g2,h2,h3)
+    # plotBestResponceIntroCDS(b2_vec[0],g2,h2,h3)
+    # plotBestResponceIntroCDS(b2_vec[1],g2,h2,h3)
+
+    g2 = 3*(1-3/4*t2)*(y2-1)**2 + 3*3/4*t2*y2**2
+    # plotBestResponceIntroCDS(b2_vec[0],g2,h2,h3,aditional='pesimista')
+    plotBestResponceIntroCDS(b2_vec[1],g2,h2,h3,aditional='_pesimista',nLinspace=100)
+
 
 
