@@ -10,8 +10,8 @@ from shapely.geometry import LineString
 
 
 def plotBestResponceIntroCDS(b2_v,g2,h2,h3,nProcess = 12,
-                             savePath = 'resultados/intro_cds/', aditional = '',
-                             nLinspace = 200):
+                             savePath = 'figuras/intro_cds/', aditional = '',
+                             nLinspace = 1000):
     t2 = sympy.symbols('t2', positive=True)
     ## p*q > b barra 
     vf2_1 = integrate(Min(y2/q2,1)*g2,(y2,0,1))
@@ -94,7 +94,8 @@ def plotBestResponceIntroCDS(b2_v,g2,h2,h3,nProcess = 12,
 
         cons2 = ({"type": "ineq", "fun": lambda x: 1 - res(x[0],r_v)})
         x0_2 = [p2_v]
-        result2 = scipy.optimize.direct(f2,bounds=[(b2_v,1)], args = (b2_v, r_v), maxfun=100000, maxiter = 100000)
+        # result2 = scipy.optimize.direct(f2,bounds=[(b2_v,1)], args = (b2_v, r_v), maxfun=100000, maxiter = 100000)
+        result2 = scipy.optimize.shgo(f2,bounds=[(b2_v,1)], args = (b2_v, r_v))
         # print(result2)
         # result2 = scipy.optimize.minimize(f2,x0_2,args = (b2_v, r_v), bounds=[(0,1)], tol=1e-10, options={"maxiter" : 1000},method = 'Nelder-Mead')
         output = dict()
@@ -110,10 +111,10 @@ def plotBestResponceIntroCDS(b2_v,g2,h2,h3,nProcess = 12,
 
         cons3 = ({'type': 'ineq', 'fun': lambda x: 1 - res(p2_v,x[0])})
         x0_3 = [r_v]
-        # result3 = scipy.optimize.differential_evolution(f3,bounds=[(0,1-b2_v)],args = (b2_v, p2_v), maxiter = 100000)
-        result3 = scipy.optimize.shgo(f3,bounds=[(0,1-b2_v)],args = (b2_v, p2_v))
+        # result3 = scipy.optimize.direct(f3,bounds=[(0,1-b2_v)],args = (b2_v, p2_v), maxfun = 200000,maxiter = 200000)
+        result3 = scipy.optimize.shgo(f3,bounds=[(0,1-b2_v)],args = (b2_v, p2_v), n=64, iters=3)
         # result3 = scipy.optimize.minimize(f3,x0_3,args = (b2_v, p2_v), bounds=[(0,1)], tol=1e-10, options={"maxiter" : 1000},method = 'Nelder-Mead')
-        print(result3.x[0],result3.fun)
+        # print(result3.x[0],result3.fun)
         if result3.fun == 0:
             print(result3)
         output = dict()
@@ -152,15 +153,22 @@ def plotBestResponceIntroCDS(b2_v,g2,h2,h3,nProcess = 12,
     result3 = pool.starmap(mejor_r, [[(x0_2,0.1)] for x0_2 in x0_p2 ])
 
     X1 = [x["r"] if (x['flag']) else np.nan for x in result2]
-    Y1 = [x["mejor_respuesta"] if (x['flag']) else np.nan for x in result2]
+    Y1 = [x["mejor_respuesta"] if (x['flag'] and x['r']) else np.nan for x in result2]
+    Y1_1 = [x["mejor_respuesta"] if (x['flag'] and x['r'] + x['mejor_respuesta'] <= 1) else np.nan for x in result2]
+    Y1_2 = [x["mejor_respuesta"] if (x['flag'] and x['r'] + x['mejor_respuesta'] > 1) else np.nan for x in result2]
 
-    # print(result2)
-    X2 = [x['mejor_respuesta'] if (x['flag'] or x['fun'] == 0) else np.nan for x in result3]
-    Y2 = [x['p2'] if (x['flag'] or x['fun'] == 0) else np.nan for x in result3]
+    # Lo separo en dos para que el gráfico se vea mejor
+    X2 = [x['mejor_respuesta'] if ((x['flag'] or x['fun'] == 0)) else np.nan for x in result3]
+    X2_1 = [x['mejor_respuesta'] if ((x['flag'] or x['fun'] == 0) and x['p2'] + x['mejor_respuesta'] <= 1) else np.nan for x in result3]
+    X2_2 = [x['mejor_respuesta'] if ((x['flag'] or x['fun'] == 0) and x['p2'] + x['mejor_respuesta'] > 1) else np.nan for x in result3]
+    Y2 = [x['p2'] if (x['flag'] or x['fun'] == 0)  else np.nan for x in result3]
+
 
     fig, ax = plt.subplots()
-    ax.plot(X1,Y1,'k' ,label = '$p_2^*(r)$')
-    ax.plot(X2,Y2, '--',color = 'orange', label = '$r^*(p_2)$')
+    ax.plot(X1,Y1_1,'k' ,label = '$p_2^*(r)$')
+    ax.plot(X1,Y1_2,'k')
+    ax.plot(X2_1,Y2, '--',color = 'tab:orange', label = '$r^*(p_2)$')
+    ax.plot(X2_2,Y2, '--',color = 'tab:orange')
     # ax.plot(r_eq,p2_eq,'r',alpha=.9)
 
     ax.set(ylabel = 'precio de $\\mathcal{A}_2 (p_2)$',
@@ -172,9 +180,9 @@ def plotBestResponceIntroCDS(b2_v,g2,h2,h3,nProcess = 12,
     # print(first_line,second_line)
     if intersection.geom_type == 'MultiPoint':
         x, y = zip(*[(point.x, point.y) for point in intersection.geoms])
-        plt.plot(x, y, 'ro')
+        plt.plot(x, y, '.', color = 'tab:red')
         # plt.plot(*LineString(intersection).coords.xy, 'ro')
-        # print(*LineString(intersection).xy)
+        print(x, y)
     elif intersection.geom_type == 'Point':
         plt.plot(*intersection.xy, 'ro')
         print(*intersection.xy[0],*intersection.xy[1])
@@ -182,15 +190,15 @@ def plotBestResponceIntroCDS(b2_v,g2,h2,h3,nProcess = 12,
 
     # Se añade un grilla
     ax.grid(color = '0.95')
-    plt.savefig(f'figuras/intro_cds_mejor_resupuesta_b_{b2_v}{aditional}.png', format = 'png')
+    plt.savefig(f'figuras/intro_cds/resupuesta_b_{b2_v}{aditional}.eps', format = 'eps')
 
     resultado_1 = {f'r_{x["r"]}' : f'{x["mejor_respuesta"]}' for x in result2}
     resultado_2 = {f'p2_{y["p2"]}' : f'{y["mejor_respuesta"]}' for y in result3}
 
     resultado = {**resultado_1,**resultado_2}
     # Guardo los datos en json
-    with open(f'{savePath}equilibrios_intro_cds_b_{b2_v}{aditional}.json', 'w') as f:
-        json.dump(resultado, f)
+    # with open(f'{savePath}equilibrios_intro_cds_b_{b2_v}{aditional}.json', 'w') as f:
+    #     json.dump(resultado, f)
 
 if __name__ == '__main__':
     y2, p2, q2, b2, r = sympy.symbols('y2 p2 q2 b2 r', real=True, positive=True)
@@ -199,16 +207,21 @@ if __name__ == '__main__':
     # Equilibrio buscado
     b2_vec = [0.3, 0.4]
     h2 = 3*y2**2
-    h3 = 3*y2**2
+    h3_e1 = 3*y2**2
+    h3_e2 = 1
 
-    g2 = 3*(1-t2)*(y2-1)**2 + 3*t2*y2**2
+    g2_base = 3*(1-t2)*(y2-1)**2 + 3*t2*y2**2
 
-    # plotBestResponceIntroCDS(b2_vec[0],g2,h2,h3)
-    # plotBestResponceIntroCDS(b2_vec[1],g2,h2,h3)
+    plotBestResponceIntroCDS(b2_vec[0],g2_base,h2,h3_e1,aditional='_base_esc1')
+    plotBestResponceIntroCDS(b2_vec[1],g2_base,h2,h3_e1,aditional='_base_esc1')
+    plotBestResponceIntroCDS(b2_vec[0],g2_base,h2,h3_e2,aditional='_base_esc2')
+    plotBestResponceIntroCDS(b2_vec[1],g2_base,h2,h3_e2,aditional='_base_esc2')
 
-    g2 = 3*(1-3/4*t2)*(y2-1)**2 + 3*3/4*t2*y2**2
-    # plotBestResponceIntroCDS(b2_vec[0],g2,h2,h3,aditional='pesimista')
-    plotBestResponceIntroCDS(b2_vec[1],g2,h2,h3,aditional='_pesimista',nLinspace=100)
+    g2_pesimista = 3*(1-3/4*t2)*(y2-1)**2 + 3*3/4*t2*y2**2
+    plotBestResponceIntroCDS(b2_vec[0],g2_pesimista,h2,h3_e1,aditional='_pesimista_esc1')
+    plotBestResponceIntroCDS(b2_vec[1],g2_pesimista,h2,h3_e1,aditional='_pesimista_esc1')
+    plotBestResponceIntroCDS(b2_vec[0],g2_pesimista,h2,h3_e2,aditional='_pesimista_esc2')
+    plotBestResponceIntroCDS(b2_vec[1],g2_pesimista,h2,h3_e2,aditional='_pesimista_esc2')
 
 
 
