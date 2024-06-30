@@ -11,7 +11,7 @@ y1, p1, q1, b1, y2, p2, q2, b2, r = sympy.symbols('y1 p1 q1 b1 y2 p2 q2 b2 r', r
 t1, t2 = sympy.symbols('t1 t2', positive=True)
 
 def searchEquilibriumCompCDS(b1_v,b2_v,g1,g2,h1,h2,h3,nProcess = 12,
-                             savePath = 'resultados/', aditional = '',
+                             savePath = 'resultados/competencia_cds/', aditional = '',
                              nP1 = 5,nP2 = 5,nR = 5):
     print(nP1*nP2*nR,"equilibriums will be calculated")
     t1, t2 = sympy.symbols('t1 t2', positive=True)
@@ -157,11 +157,11 @@ def searchEquilibriumCompCDS(b1_v,b2_v,g1,g2,h1,h2,h3,nProcess = 12,
     def mejor_r(x):
         p1_v = x[0]
         p2_v = x[1]
-        r_v = busca_valor_inicial2(p1_v,p2_v,f3)
-        r_v = x[2] if np.isnan(r_v) else r_v
-
+        # r_v = busca_valor_inicial2(p1_v,p2_v,f3)
+        # r_v = x[2] if np.isnan(r_v) else r_v
+        r_v = x[2]
         x0_3 = [r_v]
-        result3 = scipy.optimize.minimize(f3,x0_3,args = (b1_v, b2_v, p1_v, p2_v), bounds=[(0,1-b2_v)], tol=1e-10, options={"maxiter" : 1000},method = 'Nelder-Mead')
+        result3 = scipy.optimize.minimize(f3,x0_3,args = (b1_v, b2_v, p1_v, p2_v), bounds=[(0,1-b2_v)], tol=1e-10, options={"maxiter" : 1000},method = 'Powell')
         output = dict()
         output["p_2"] = p2_v
         output["p_1"] = p1_v
@@ -190,15 +190,36 @@ def searchEquilibriumCompCDS(b1_v,b2_v,g1,g2,h1,h2,h3,nProcess = 12,
         # print(sol[0],sol[2])
         return resultado
     
+    # print(busqueda_equilibrio(0.8702866187102574, 0.9999000000146915, 9.999989641080537e-05))
+    # lin = np.linspace(0.00001,1,1000)
+    # u3_plot = np.zeros(1000)
+    # for idx, r_vs in enumerate(lin):
+    #     u3_plot[idx] = -1*f3([r_vs],b1_v,b2_v,0.8702866187102574, 0.9999000000146915)
+
+    # plt.plot(lin,u3_plot)
+    # plt.show()
     pool = mp.Pool(processes=nProcess)
     equilibrio = pool.starmap(busqueda_equilibrio, [[x0_1,x0_2,x0_3] for x0_1 in np.linspace(b1_v,1,nP1) for x0_2 in np.linspace(b2_v,1,nP2) for x0_3 in np.linspace(0,1-b2_v,nR)])
     
     for idx, x in enumerate(equilibrio):
         if not np.all(np.isnan(x)):
             res = busqueda_equilibrio(x[0],x[1],x[2])
-            print(res[0],res[1],res[2])
+            # print(res[0],res[1],res[2])
             if np.all(res != x):
                 equilibrio[idx] = np.nan
+            else :
+                # se añade info adicional en el siguiente orden
+                # p1, p2, r, u1, u2, u3
+                p1_opt = equilibrio[idx][0]
+                p2_opt = equilibrio[idx][1]
+                r_opt = equilibrio[idx][2]
+                u1_opt = -1*f1([p1_opt],b1_v,b2_v,p2_opt,r_opt)
+                u2_opt = -1*f2([p2_opt],b1_v,b2_v,p1_opt,r_opt)
+                u3_opt = -1*f3([r_opt],b1_v,b2_v,p1_opt,p2_opt)
+                equilibrio[idx] = [
+                    p1_opt,p2_opt,r_opt,
+                    u1_opt,u2_opt,u3_opt
+                ]
     
     with open(f'{savePath}/equilibrios_competencia_b1_{b1_v}_b2_{b2_v}{aditional}.txt', 'w') as f:
             for s in equilibrio:
@@ -218,14 +239,14 @@ if __name__ == '__main__':
     g2_base = 3*(1-t2)*(y2-1)**2 + 3*t2*y2**2
     g2_pesimista = 3*(1-3/4*t2)*(y2-1)**2 + 3*3/4*t2*y2**2
     
-    # searchEquilibriumCompCDS(b1_v,b2_v,g1,g2_base,h1,h2,h3_esc1,nProcess=12,aditional='_base_esc1')
-    searchEquilibriumCompCDS(b1_v,b2_v,g1,g2_base,h1,h2,h3_esc2,nProcess=12,aditional='_base_esc2')
-    # searchEquilibriumCompCDS(b1_v,b2_v,g1,g2_pesimista,h1,h2,h3_esc1,nProcess=12,aditional='_pesimista_esc1')
+    searchEquilibriumCompCDS(b1_v,b2_v,g1,g2_base,h1,h2,h3_esc1,nProcess=12,aditional='_base_esc1_2')
+    searchEquilibriumCompCDS(b1_v,b2_v,g1,g2_base,h1,h2,h3_esc2,nProcess=12,aditional='_base_esc2_2')
+    searchEquilibriumCompCDS(b1_v,b2_v,g1,g2_pesimista,h1,h2,h3_esc1,nProcess=12,aditional='_pesimista_esc1_2')
     # searchEquilibriumCompCDS(b1_v,b2_v,g1,g2_pesimista,h1,h2,h3_esc2,nProcess=12,aditional='_pesimista_esc2')
 
-    # b2_v = 0.4
-    # searchEquilibriumCompCDS(b1_v,b2_v,g1,g2_base,h1,h2,h3_esc1,nProcess=12,aditional='_base_esc1')
-    # searchEquilibriumCompCDS(b1_v,b2_v,g1,g2_base,h1,h2,h3_esc2,nProcess=12,aditional='_base_esc2')
-    # searchEquilibriumCompCDS(b1_v,b2_v,g1,g2_pesimista,h1,h2,h3_esc1,nProcess=12,aditional='_pesimista_esc1')
-    # searchEquilibriumCompCDS(b1_v,b2_v,g1,g2_pesimista,h1,h2,h3_esc2,nProcess=12,aditional='_pesimista_esc2')
+    b2_v = 0.4
+    searchEquilibriumCompCDS(b1_v,b2_v,g1,g2_base,h1,h2,h3_esc1,nProcess=12,aditional='_base_esc1_2')
+    searchEquilibriumCompCDS(b1_v,b2_v,g1,g2_base,h1,h2,h3_esc2,nProcess=12,aditional='_base_esc2_2')
+    searchEquilibriumCompCDS(b1_v,b2_v,g1,g2_pesimista,h1,h2,h3_esc1,nProcess=12,aditional='_pesimista_esc1_2')
+    searchEquilibriumCompCDS(b1_v,b2_v,g1,g2_pesimista,h1,h2,h3_esc2,nProcess=12,aditional='_pesimista_esc2_2')
     
