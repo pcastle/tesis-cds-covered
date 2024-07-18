@@ -115,8 +115,8 @@ def plotBestResponceIntroCDS(b2_v,g2,h2,h3,nProcess = 12,
         result3 = scipy.optimize.shgo(f3,bounds=[(0,1-b2_v)],args = (b2_v, p2_v), n=64, iters=3)
         # result3 = scipy.optimize.minimize(f3,x0_3,args = (b2_v, p2_v), bounds=[(0,1)], tol=1e-10, options={"maxiter" : 1000},method = 'Nelder-Mead')
         # print(result3.x[0],result3.fun)
-        if result3.fun == 0:
-            print(result3)
+        # if result3.fun == 0:
+        #     print(result3)
         output = dict()
         output["p2"] = p2_v
         output["mejor_respuesta"] = result3.x[0]
@@ -169,6 +169,7 @@ def plotBestResponceIntroCDS(b2_v,g2,h2,h3,nProcess = 12,
     ax.plot(X1,Y1_2,'k')
     ax.plot(X2_1,Y2, '--',color = 'tab:orange', label = '$r^*(p_2)$')
     ax.plot(X2_2,Y2, '--',color = 'tab:orange')
+    ax.plot(x0_r, 1-x0_r, color = 'tab:green')
     # ax.plot(r_eq,p2_eq,'r',alpha=.9)
 
     ax.set(ylabel = 'precio de $\\mathcal{A}_2 (p_2)$',
@@ -177,7 +178,7 @@ def plotBestResponceIntroCDS(b2_v,g2,h2,h3,nProcess = 12,
     first_line = LineString(np.column_stack((X1, Y1)))
     second_line = LineString(np.column_stack((X2, Y2)))
     intersection = first_line.intersection(second_line)
-    # print(first_line,second_line)
+    print(intersection)
     if intersection.geom_type == 'MultiPoint':
         x, y = zip(*[(point.x, point.y) for point in intersection.geoms])
         plt.plot(x, y, '.', color = 'tab:red')
@@ -213,15 +214,15 @@ if __name__ == '__main__':
     g2_base = 3*(1-t2)*(y2-1)**2 + 3*t2*y2**2
 
     plotBestResponceIntroCDS(b2_vec[0],g2_base,h2,h3_e1,aditional='_base_esc1')
-    plotBestResponceIntroCDS(b2_vec[1],g2_base,h2,h3_e1,aditional='_base_esc1')
-    plotBestResponceIntroCDS(b2_vec[0],g2_base,h2,h3_e2,aditional='_base_esc2')
-    plotBestResponceIntroCDS(b2_vec[1],g2_base,h2,h3_e2,aditional='_base_esc2')
+    # plotBestResponceIntroCDS(b2_vec[1],g2_base,h2,h3_e1,aditional='_base_esc1')
+    # plotBestResponceIntroCDS(b2_vec[0],g2_base,h2,h3_e2,aditional='_base_esc2')
+    # plotBestResponceIntroCDS(b2_vec[1],g2_base,h2,h3_e2,aditional='_base_esc2')
 
-    g2_pesimista = 3*(1-3/4*t2)*(y2-1)**2 + 3*3/4*t2*y2**2
-    plotBestResponceIntroCDS(b2_vec[0],g2_pesimista,h2,h3_e1,aditional='_pesimista_esc1')
-    plotBestResponceIntroCDS(b2_vec[1],g2_pesimista,h2,h3_e1,aditional='_pesimista_esc1')
-    plotBestResponceIntroCDS(b2_vec[0],g2_pesimista,h2,h3_e2,aditional='_pesimista_esc2')
-    plotBestResponceIntroCDS(b2_vec[1],g2_pesimista,h2,h3_e2,aditional='_pesimista_esc2')
+    # g2_pesimista = 3*(1-3/4*t2)*(y2-1)**2 + 3*3/4*t2*y2**2
+    # plotBestResponceIntroCDS(b2_vec[0],g2_pesimista,h2,h3_e1,aditional='_pesimista_esc1')
+    # plotBestResponceIntroCDS(b2_vec[1],g2_pesimista,h2,h3_e1,aditional='_pesimista_esc1')
+    # plotBestResponceIntroCDS(b2_vec[0],g2_pesimista,h2,h3_e2,aditional='_pesimista_esc2')
+    # plotBestResponceIntroCDS(b2_vec[1],g2_pesimista,h2,h3_e2,aditional='_pesimista_esc2')
 
 
 

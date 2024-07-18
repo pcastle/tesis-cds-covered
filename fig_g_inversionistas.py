@@ -21,7 +21,9 @@ ax.plot(Y, g_fun(Y,1),'k:', label = '$\\theta = 1$')
 
 ax.grid(alpha = 0.9)
 ax.legend(loc = 'upper center')
-plt.savefig('figuras/fun_inversionistas.eps', format = 'eps')
+ax.set(xlabel = "$y$",
+       ylabel = '$g(y|\\theta)$')
+plt.savefig('figuras/monopolio/fun_inversionistas.eps', format = 'eps')
 
 g = 3*(1 - t*3/4)*(y - 1)**2 + 3*t*3/4*y**2
 
@@ -38,4 +40,6 @@ ax.plot(Y, g_fun(Y,1),'k:', label = '$\\theta = 1$')
 
 ax.grid(alpha = 0.9)
 ax.legend(loc = 'upper center')
-plt.savefig('figuras/fun_inversionistas_2.eps', format = 'eps')
+ax.set(xlabel = "$y$",
+       ylabel = '$g(y|\\theta)$')
+plt.savefig('figuras/monopolio/fun_inversionistas_2.eps', format = 'eps')

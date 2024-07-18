@@ -164,3 +164,4 @@ cython_debug/
 # *.json
 !figuras/*.txt
 figuras/*.json
+tesis-env/
