@@ -229,11 +229,13 @@ def plotBestResponceCompCDS(b1_v,b2_v,p1_v, p2_v, r_v,g1,g2,h1,h2,h3,
     intersection = first_line.intersection(second_line)
     # print(intersection)
     if intersection.geom_type == 'MultiPoint':
-        plt.plot(*LineString(intersection).xy, 'r.', markersize = 10)
-        # print(*LineString(intersection).xy)
+        x, y = zip(*[(point.x, point.y) for point in intersection.geoms])
+        plt.plot(x, y, '.', color = 'tab:red')
+        # plt.plot(*LineString(intersection).coords.xy, 'ro')
+        # print(x, y)
     elif intersection.geom_type == 'Point':
-        plt.plot(*intersection.xy, 'r.')
-        # print(*intersection.xy[0],*intersection.xy[1])
+        plt.plot(*intersection.xy, 'ro')
+        print(*intersection.xy[0],*intersection.xy[1])
     ax.legend()
     plt.plot(*(r_v,p2_v),'b.')
     ax.grid(color = '0.95')
@@ -269,11 +271,13 @@ def plotBestResponceCompCDS(b1_v,b2_v,p1_v, p2_v, r_v,g1,g2,h1,h2,h3,
     intersection = first_line.intersection(second_line)
     # print(intersection)
     if intersection.geom_type == 'MultiPoint':
-        plt.plot(*LineString(intersection).xy, 'r.', markersize = 10)
-        # print(*LineString(intersection).xy)
+        x, y = zip(*[(point.x, point.y) for point in intersection.geoms])
+        plt.plot(x, y, '.', color = 'tab:red')
+        # plt.plot(*LineString(intersection).coords.xy, 'ro')
+        # print(x, y)
     elif intersection.geom_type == 'Point':
-        plt.plot(*intersection.xy, 'r.')
-        # print(*intersection.xy[0],*intersection.xy[1])
+        plt.plot(*intersection.xy, 'ro')
+        print(*intersection.xy[0],*intersection.xy[1])
     ax.legend()
     plt.plot(*(r_v,p1_v),'b.')
 
@@ -299,9 +303,29 @@ def plotBestResponceCompCDS(b1_v,b2_v,p1_v, p2_v, r_v,g1,g2,h1,h2,h3,
 
     fig, ax = plt.subplots()
 
+    # separate discrete jumps
+    Y1_aux = np.zeros(len(Y1))
+    X2_aux = np.zeros(len(X2))
+    aux_value = 1
+    for idx in range(len(Y1)):
+        if Y1[idx] <= aux_value:
+            Y1_aux[idx] = Y1[idx]
+            aux_value = Y1[idx]
+            Y1[idx] = np.nan
+        else:
+            Y1_aux[idx] = np.nan
+    for idx in range(len(X2)):
+        if X2[idx] > 1- r_v:
+            X2_aux[idx] = X2[idx]
+            X2[idx] = np.nan 
+        else:
+            X2_aux[idx] = np.nan
+
 
     ax.plot(X1,Y1,'k' ,label = f'$p_1^*(p_2,r = {r_v:5.4f})$')
+    ax.plot(X1,Y1_aux,'k')
     ax.plot(X2,Y2, '--',color = 'orange' ,label = f'$p_2^*(p_1,r = {r_v:5.4f})$')
+    ax.plot(X2_aux,Y2, '--',color = 'orange')
     # ax.plot(r_eq,p2_eq,'r',alpha=.9)
 
     ax.set(ylabel = 'precio de $\\mathcal{A}_1 (p_1)$',
@@ -312,11 +336,13 @@ def plotBestResponceCompCDS(b1_v,b2_v,p1_v, p2_v, r_v,g1,g2,h1,h2,h3,
     intersection = first_line.intersection(second_line)
     # print(intersection)
     if intersection.geom_type == 'MultiPoint':
-        plt.plot(*LineString(intersection).xy, 'r.', markersize = 10)
-        # print(*LineString(intersection).xy)
+        x, y = zip(*[(point.x, point.y) for point in intersection.geoms])
+        plt.plot(x, y, '.', color = 'tab:red')
+        # plt.plot(*LineString(intersection).coords.xy, 'ro')
+        # print(x, y)
     elif intersection.geom_type == 'Point':
-        plt.plot(*intersection.xy, 'r.')
-        # print(*intersection.xy[0],*intersection.xy[1])
+        plt.plot(*intersection.xy, 'ro')
+        print(*intersection.xy[0],*intersection.xy[1])
     ax.legend()
     plt.plot(*(p2_v,p1_v),'b.')
 
@@ -371,7 +397,7 @@ if __name__ == '__main__':
     result["res8"] = plotBestResponceCompCDS(b1_v,b2_v,0.82285822, 0.63512424, 0.36487576,g1,g2_pesimista,h1,h2,h3_esc2,n_lin=1200,
                             aditional='_pesimista_esc2')
 
-print(result)
+    print(result)
 # {   'res1': 
 #  {'b1': 0.3, 'b2': 0.3, 'p1': 0.86618168, 'p2': 0.93785456, 'r': 0.06214544, 
 # 'u1': 0.4072497275936395, 'u2': 0.432738455453565, 'u3': 0.01726154454643499},

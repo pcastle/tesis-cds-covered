@@ -6,7 +6,8 @@ import json
 import math
 
 
-def searchEquilibriumPrices(g, h, nLinspace = 200,path = '',aditional = ''):
+def searchEquilibriumPrices(g, h, nLinspace = 200,path = '',aditional = '',
+                            searchEquilibrium = {}):
     t = symbols('t', positive = True)
     y, p, q, b = symbols('y p q b', real = True, positive = True)
 
@@ -86,6 +87,21 @@ def searchEquilibriumPrices(g, h, nLinspace = 200,path = '',aditional = ''):
     with open(f'{path}equilibrios_monopolio{aditional}.json', 'w') as f:
         json.dump(resultado, f)
 
+    if searchEquilibrium:
+        resultado = dict()
+        for b_v in searchEquilibrium["b_v"]:
+            equilibrio = busqueda_equilibrio(b_v,{})
+            p_eq = equilibrio[f"{b_v}.p"]
+            resultado[f"equilibrio_{b_v}"] = {
+                "b_v" : b_v, 
+                "g": pycode(g),
+                "p": p_eq,
+                "u": -1*f_objetivo([p_eq],b_v)
+            }
+    return(resultado)
+        
+
+
 if __name__ == '__main__':
     y, p, q, b = symbols('y p q b', real = True, positive = True)
     t = symbols('t', positive = True)
@@ -94,7 +110,7 @@ if __name__ == '__main__':
     g_pesimista = 3*(1-t*3/4)*(y-1)**2 + 3*t*3/4*y**2
     h = 3*y**2
 
-    searchEquilibriumPrices(g_base, h)
+    print(searchEquilibriumPrices(g_base, h, searchEquilibrium={"b_v": [0.3,0.4]}))
 
-    searchEquilibriumPrices(g_pesimista, h, aditional='_2')
+    print(searchEquilibriumPrices(g_pesimista, h, aditional='_2',searchEquilibrium={"b_v": [0.3,0.4]}))
 
