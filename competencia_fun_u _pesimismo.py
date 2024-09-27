@@ -96,9 +96,9 @@ for idx, p2_v in enumerate(p2s4):
 
 fig, ax = plt.subplots()
 ax.plot(p2s1,f2_vec1,'k' ,label = f'$u_2(p_2,p_1^* = {p1_opt1:.3f})$')
-ax.plot(p2s2,f2_vec2,'k--' ,label = f'$u_2(p_2,p_1^* = {p1_opt2:.3f})$')
-ax.plot(p2s3,f2_vec3,'k:' ,label = f'$u_2(p_2,p_1^* = {p1_opt3:.3f})$')
-ax.plot(p2s4,f2_vec4,'k-.' ,label = f'$u_2(p_2,p_1^* = {p1_opt4:.3f})$')
+ax.plot(p2s2,f2_vec2,'--',color = "tab:orange" ,label = f'$u_2(p_2,p_1^* = {p1_opt2:.3f})$')
+ax.plot(p2s3,f2_vec3,':',color = "tab:green" ,label = f'$u_2(p_2,p_1^* = {p1_opt3:.3f})$')
+ax.plot(p2s4,f2_vec4,'-.',color = "tab:purple" ,label = f'$u_2(p_2,p_1^* = {p1_opt4:.3f})$')
 ax.plot(p2_opt1,f2([p2_opt1],b1_v1,b2_v1,p1_opt1), 'ro')
 ax.plot(p2_opt2,f2([p2_opt2],b1_v2,b2_v2,p1_opt2), 'ro')
 ax.plot(p2_opt3,f2([p2_opt3],b1_v3,b2_v3,p1_opt3), 'ro')
