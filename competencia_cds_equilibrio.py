@@ -123,34 +123,38 @@ def searchEquilibriumCompCDS(b1_v,b2_v,g1,g2,h1,h2,h3,nProcess = 12,
         p2_v = x[1]
         r_v = x[2]
 
-        p1_v = busca_valor_inicial(b1_v,p2_v,r_v,f1,res1)
-        p1_v = x[0]  if np.isnan(p1_v) else p1_v
+        # p1_v = busca_valor_inicial(b1_v,p2_v,r_v,f1,res1)
+        p1_v = x[0]  #if np.isnan(p1_v) else p1_v
 
         cons1 = ({"type": "ineq", "fun": lambda x: x[0] - res1(x, b1_v, b2_v, p2_v, r_v)})
         x0_1 = [p1_v]
-        result1 = scipy.optimize.minimize(f1,x0_1,args = (b1_v, b2_v, p2_v,r_v),constraints=cons1, bounds=[(b1_v,1)], tol=1e-10, options={"maxiter" : 1000})
+        # result1 = scipy.optimize.minimize(f1,x0_1,args = (b1_v, b2_v, p2_v,r_v),constraints=cons1, bounds=[(b1_v,1)], tol=1e-10, options={"maxiter" : 1000})
+        result1 = scipy.optimize.shgo(f1,bounds=[(b1_v,1)],args = (b1_v, b2_v, p2_v,r_v),constraints=cons1, n=64, iters=3)
         output = dict()
         output["p_2"] = p2_v
         output["r"] = r_v
         output["mejor_respuesta"] = result1.x[0]
         output["flag"] = result1.success
+        output["fun"] = result1.fun
         return output
 
     def mejor_p2(x):
         p1_v = x[0]
         r_v = x[2]
-        p2_v = busca_valor_inicial(b2_v,p1_v,r_v,f2,res2)
-        p2_v = x[1]  if np.isnan(p2_v) else p2_v
+        # p2_v = busca_valor_inicial(b2_v,p1_v,r_v,f2,res2)
+        p2_v = x[1] # if np.isnan(p2_v) else p2_v
         
         # La restriccion no es necesaria
         cons2 = ({"type": "ineq", "fun": lambda x: x[0] - res2(x, b1_v, b2_v, p1_v)})
         x0_2 = [p2_v]
-        result2 = scipy.optimize.minimize(f2,x0_2,args = (b1_v, b2_v, p1_v, r_v), bounds=[(b2_v,1)], tol=1e-10, options={"maxiter" : 1000},method = 'Nelder-Mead')
+        # result2 = scipy.optimize.minimize(f2,x0_2,args = (b1_v, b2_v, p1_v, r_v), bounds=[(b2_v,1)], tol=1e-10, options={"maxiter" : 1000},method = 'Nelder-Mead')
+        result2 = scipy.optimize.shgo(f2,bounds=[(b2_v,1)], args = (b1_v, b2_v, p1_v, r_v), n=64, iters=3)
         output = dict()
         output["p_1"] = p1_v
         output["r"] = r_v
         output["mejor_respuesta"] = result2.x[0]
         output["flag"] = result2.success
+        output["fun"] = result2.fun
         return output
 
 
@@ -161,12 +165,14 @@ def searchEquilibriumCompCDS(b1_v,b2_v,g1,g2,h1,h2,h3,nProcess = 12,
         # r_v = x[2] if np.isnan(r_v) else r_v
         r_v = x[2]
         x0_3 = [r_v]
-        result3 = scipy.optimize.minimize(f3,x0_3,args = (b1_v, b2_v, p1_v, p2_v), bounds=[(0,1-b2_v)], tol=1e-10, options={"maxiter" : 1000},method = 'Powell')
+        # result3 = scipy.optimize.minimize(f3,x0_3,args = (b1_v, b2_v, p1_v, p2_v), bounds=[(0,1-b2_v)], tol=1e-10, options={"maxiter" : 1000},method = 'Powell')
+        result3 = scipy.optimize.shgo(f3,bounds=[(0,1-b2_v)],args = (b1_v, b2_v, p1_v, p2_v), n=64, iters=3)
         output = dict()
         output["p_2"] = p2_v
         output["p_1"] = p1_v
         output["mejor_respuesta"] = result3.x[0]
         output["flag"] = result3.success
+        output["fun"] = result3.fun
         return output
 
 
@@ -181,13 +187,23 @@ def searchEquilibriumCompCDS(b1_v,b2_v,g1,g2,h1,h2,h3,nProcess = 12,
         return (result1['mejor_respuesta'] - p1_v,result2['mejor_respuesta'] - p2_v,result3['mejor_respuesta']- r_v)
 
 
+    # def busqueda_equilibrio(x0_1,x0_2,x0_3):
+    #     x0 = [x0_1,x0_2,x0_3]
+    #     # sol = scipy.optimize.fsolve(correspondencia,x0, tol=1e-10,maxfev=1000000, full_output=True)
+    #     sol = scipy.optimize.root(correspondencia,x0, tol=1e-10,method='df-sane')
+
+    #     # Guardo el equilibrio solo si converge a una solución
+    #     # print(sol)
+    #     resultado = sol.x 
+    #     return resultado
+
     def busqueda_equilibrio(x0_1,x0_2,x0_3):
         x0 = [x0_1,x0_2,x0_3]
         sol = scipy.optimize.fsolve(correspondencia,x0, xtol=1e-10,maxfev=1000000, full_output=True)
 
         # Guardo el equilibrio solo si converge a una solución
-        resultado = sol[0] if sol[2] == 1 else np.nan
-        # print(sol[0],sol[2])
+        resultado = sol[0]
+        print(resultado)
         return resultado
     
     # print(busqueda_equilibrio(0.8702866187102574, 0.9999000000146915, 9.999989641080537e-05))
@@ -239,14 +255,14 @@ if __name__ == '__main__':
     g2_base = 3*(1-t2)*(y2-1)**2 + 3*t2*y2**2
     g2_pesimista = 3*(1-3/4*t2)*(y2-1)**2 + 3*3/4*t2*y2**2
     
-    searchEquilibriumCompCDS(b1_v,b2_v,g1,g2_base,h1,h2,h3_esc1,nProcess=12,aditional='_base_esc1_2')
-    searchEquilibriumCompCDS(b1_v,b2_v,g1,g2_base,h1,h2,h3_esc2,nProcess=12,aditional='_base_esc2_2')
-    searchEquilibriumCompCDS(b1_v,b2_v,g1,g2_pesimista,h1,h2,h3_esc1,nProcess=12,aditional='_pesimista_esc1_2')
-    # searchEquilibriumCompCDS(b1_v,b2_v,g1,g2_pesimista,h1,h2,h3_esc2,nProcess=12,aditional='_pesimista_esc2')
+    # searchEquilibriumCompCDS(b1_v,b2_v,g1,g2_base,h1,h2,h3_esc1,nProcess=12,aditional='_base_esc1_2',nP1=3,nP2=3,nR=3)
+    searchEquilibriumCompCDS(b1_v,b2_v,g1,g2_base,h1,h2,h3_esc2,nProcess=12,aditional='_base_esc2_2',nP1=3,nP2=3,nR=3)
+    # searchEquilibriumCompCDS(b1_v,b2_v,g1,g2_pesimista,h1,h2,h3_esc1,nProcess=12,aditional='_pesimista_esc1_2',nP1=3,nP2=3,nR=3)
+    # searchEquilibriumCompCDS(b1_v,b2_v,g1,g2_pesimista,h1,h2,h3_esc2,nProcess=12,aditional='_pesimista_esc2',nP1=3,nP2=3,nR=3)
 
-    b2_v = 0.4
-    searchEquilibriumCompCDS(b1_v,b2_v,g1,g2_base,h1,h2,h3_esc1,nProcess=12,aditional='_base_esc1_2')
-    searchEquilibriumCompCDS(b1_v,b2_v,g1,g2_base,h1,h2,h3_esc2,nProcess=12,aditional='_base_esc2_2')
-    searchEquilibriumCompCDS(b1_v,b2_v,g1,g2_pesimista,h1,h2,h3_esc1,nProcess=12,aditional='_pesimista_esc1_2')
-    searchEquilibriumCompCDS(b1_v,b2_v,g1,g2_pesimista,h1,h2,h3_esc2,nProcess=12,aditional='_pesimista_esc2_2')
+    # b2_v = 0.4
+    # searchEquilibriumCompCDS(b1_v,b2_v,g1,g2_base,h1,h2,h3_esc1,nProcess=12,aditional='_base_esc1_2',nP1=3,nP2=3,nR=3)
+    # searchEquilibriumCompCDS(b1_v,b2_v,g1,g2_base,h1,h2,h3_esc2,nProcess=12,aditional='_base_esc2_2',nP1=3,nP2=3,nR=3)
+    # searchEquilibriumCompCDS(b1_v,b2_v,g1,g2_pesimista,h1,h2,h3_esc1,nProcess=12,aditional='_pesimista_esc1_2',nP1=3,nP2=3,nR=3)
+    # searchEquilibriumCompCDS(b1_v,b2_v,g1,g2_pesimista,h1,h2,h3_esc2,nProcess=12,aditidddddddddddddddwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwaaaaaaaonal='_pesimista_esc2_2',nP1=3,nP2=3,nR=3)
     

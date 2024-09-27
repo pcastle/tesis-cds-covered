@@ -135,7 +135,7 @@ def plotBestResponceIntroCDS(b2_v,g2,h2,h3,nProcess = 12, plot = True,
         sol = scipy.optimize.fsolve(correspondencia,x0, xtol=1e-10,maxfev=1000000, full_output=True)
 
         # Guardo el equilibrio solo si converge a una solución
-        return_dict[f"equilibrio"] = sol[0] if sol[2] == 1 else np.nan
+        return_dict[f"equilibrio"] = sol[0]
         print(sol[0],sol[2])
         return return_dict
     
@@ -149,6 +149,7 @@ def plotBestResponceIntroCDS(b2_v,g2,h2,h3,nProcess = 12, plot = True,
                    "g2": pycode(g2),
                    "h3": pycode(h3),
                    "p_2": p2_eq,
+                   "q_2": q2_lam(p2_eq,b2_v,r_eq),
                    "r": r_eq,
                    "u_2": -1*f2([p2_eq],b2_v,r_eq),
                    "u_3": -1*f3([r_eq],b2_v,p2_eq)}

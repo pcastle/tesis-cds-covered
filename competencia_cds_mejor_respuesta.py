@@ -122,53 +122,56 @@ def plotBestResponceCompCDS(b1_v,b2_v,p1_v, p2_v, r_v,g1,g2,h1,h2,h3,
         p2_v = x[1]
         r_v = x[2]
 
-        p1_v = busca_valor_inicial(b1_v,p2_v,r_v,f1,res1)
-        p1_v = x[0]  if np.isnan(p1_v) else p1_v
+        # p1_v = busca_valor_inicial(b1_v,p2_v,r_v,f1,res1)
+        p1_v = x[0]  #if np.isnan(p1_v) else p1_v
 
         cons1 = ({"type": "ineq", "fun": lambda x: x[0] - res1(x, b1_v, b2_v, p2_v, r_v)})
-        
         x0_1 = [p1_v]
-
-        result1 = scipy.optimize.minimize(f1,x0_1,args = (b1_v, b2_v, p2_v,r_v),constraints=cons1, bounds=[(b1_v,1)], tol=1e-10, options={"maxiter" : 1000})
+        # result1 = scipy.optimize.minimize(f1,x0_1,args = (b1_v, b2_v, p2_v,r_v),constraints=cons1, bounds=[(b1_v,1)], tol=1e-10, options={"maxiter" : 1000})
+        result1 = scipy.optimize.shgo(f1,bounds=[(b1_v,1)],args = (b1_v, b2_v, p2_v,r_v),constraints=cons1, n=64, iters=3)
         output = dict()
         output["p_2"] = p2_v
         output["r"] = r_v
         output["mejor_respuesta"] = result1.x[0]
         output["flag"] = result1.success
+        output["fun"] = result1.fun
         return output
 
     def mejor_p2(x):
         p1_v = x[0]
         r_v = x[2]
-        p2_v = busca_valor_inicial(b2_v,p1_v,r_v,f2,res2)
-        p2_v = x[1]  if np.isnan(p2_v) else p2_v
+        # p2_v = busca_valor_inicial(b2_v,p1_v,r_v,f2,res2)
+        p2_v = x[1] # if np.isnan(p2_v) else p2_v
         
-
         # La restriccion no es necesaria
         cons2 = ({"type": "ineq", "fun": lambda x: x[0] - res2(x, b1_v, b2_v, p1_v)})
         x0_2 = [p2_v]
-        result2 = scipy.optimize.minimize(f2,x0_2,args = (b1_v, b2_v, p1_v, r_v), bounds=[(b2_v,1)], tol=1e-10, options={"maxiter" : 1000},method = 'Nelder-Mead')
+        # result2 = scipy.optimize.minimize(f2,x0_2,args = (b1_v, b2_v, p1_v, r_v), bounds=[(b2_v,1)], tol=1e-10, options={"maxiter" : 1000},method = 'Nelder-Mead')
+        result2 = scipy.optimize.shgo(f2,bounds=[(b2_v,1)], args = (b1_v, b2_v, p1_v, r_v), n=64, iters=3)
         output = dict()
         output["p_1"] = p1_v
         output["r"] = r_v
         output["mejor_respuesta"] = result2.x[0]
         output["flag"] = result2.success
+        output["fun"] = result2.fun
         return output
 
 
     def mejor_r(x):
         p1_v = x[0]
         p2_v = x[1]
-        r_v = busca_valor_inicial2(p1_v,p2_v,f3)
-        r_v = x[2] if np.isnan(r_v) else r_v
-
+        # r_v = busca_valor_inicial2(p1_v,p2_v,f3)
+        # r_v = x[2] if np.isnan(r_v) else r_v
+        r_v = x[2]
         x0_3 = [r_v]
-        result3 = scipy.optimize.minimize(f3,x0_3,args = (b1_v, b2_v, p1_v, p2_v), bounds=[(0,1-b2_v)], tol=1e-10, options={"maxiter" : 1000},method = 'Nelder-Mead')
+        # result3 = scipy.optimize.minimize(f3,x0_3,args = (b1_v, b2_v, p1_v, p2_v), bounds=[(0,1-b2_v)], tol=1e-10, options={"maxiter" : 1000},method = 'Powell')
+        result3 = scipy.optimize.shgo(f3,bounds=[(0,1-b2_v)],args = (b1_v, b2_v, p1_v, p2_v), n=64, iters=3)
         output = dict()
         output["p_2"] = p2_v
         output["p_1"] = p1_v
         output["mejor_respuesta"] = result3.x[0]
         output["flag"] = result3.success
+        output["fun"] = result3.fun
         return output
 
     def correspondencia(x):
@@ -187,7 +190,7 @@ def plotBestResponceCompCDS(b1_v,b2_v,p1_v, p2_v, r_v,g1,g2,h1,h2,h3,
         sol = scipy.optimize.fsolve(correspondencia,x0, xtol=1e-10,maxfev=1000000, full_output=True)
 
         # Guardo el equilibrio solo si converge a una solución
-        resultado = sol[0] if sol[2] == 1 else np.nan
+        resultado = sol[0]
         return resultado
     
     # Find better responses
@@ -209,16 +212,23 @@ def plotBestResponceCompCDS(b1_v,b2_v,p1_v, p2_v, r_v,g1,g2,h1,h2,h3,
     # result3 = [pool.apply(mejor_r, args = ([x0_2,0.1],)) for x0_2 in x0_p2]
     result3 = pool.starmap(mejor_r, [[(p1_v,x0_2,0.1)] for x0_2 in x0_p2 ])
 
-    X1 = [x["r"] if (x['flag']) else np.nan for x in result2]
-    Y1 = [x["mejor_respuesta"] if (x['flag']) else np.nan for x in result2]
+    X1 = [x["r"] if (x['flag'] and x['r']) else np.nan for x in result2]
+    Y1 = [x["mejor_respuesta"] if (x['flag'] and x['r']) else np.nan for x in result2]
+    Y1_1 = [x["mejor_respuesta"] if (x['flag'] and x['r'] + x['mejor_respuesta'] <= 1) else np.nan for x in result2]
+    Y1_2 = [x["mejor_respuesta"] if (x['flag'] and x['r'] + x['mejor_respuesta'] > 1) else np.nan for x in result2]
 
     # print(result2)
-    X2 = [x['mejor_respuesta'] if (x['flag']) else np.nan for x in result3]
-    Y2 = [x['p_2'] if (x['flag']) else np.nan for x in result3]
+    X2 = [x['mejor_respuesta'] if ((x['flag'] or x['fun'] == 0)) else np.nan for x in result3]
+    X2_1 = [x['mejor_respuesta'] if ((x['flag'] or x['fun'] == 0) and x['p_2'] + x['mejor_respuesta'] <= 1) else np.nan for x in result3]
+    X2_2 = [x['mejor_respuesta'] if ((x['flag'] or x['fun'] == 0) and x['p_2'] + x['mejor_respuesta'] > 1) else np.nan for x in result3]
+    Y2 = [x['p_2'] if (x['flag'] or x['fun'] == 0)  else np.nan for x in result3]
 
     fig, ax = plt.subplots()
-    ax.plot(X1,Y1,'k' ,label = f'$p_2^*(p_1 = {p1_v:5.4f},r)$')
-    ax.plot(X2,Y2, '--',color = 'orange' ,label = f'$r^*(p_1 = {p1_v:5.4f}, p_2)$')
+    ax.plot(X1,Y1_1,'k' ,label = f'$p_2^*(p_1={p1_v:5.4f},r)$')
+    ax.plot(X1,Y1_2,'k')
+    ax.plot(X2_1,Y2, '--',color = 'tab:green', label = f'$r^*(p_1={p1_v:5.4f},p_2)$')
+    ax.plot(X2_2,Y2, '--',color = 'tab:green')
+    # ax.plot(x0_r, 1-x0_r, color = 'tab:green')
     # ax.plot(r_eq,p2_eq,'r',alpha=.9)
 
     ax.set(ylabel = 'precio de $\\mathcal{A}_2 (p_2)$',
@@ -227,15 +237,18 @@ def plotBestResponceCompCDS(b1_v,b2_v,p1_v, p2_v, r_v,g1,g2,h1,h2,h3,
     first_line = LineString(np.column_stack((X1, Y1)))
     second_line = LineString(np.column_stack((X2, Y2)))
     intersection = first_line.intersection(second_line)
-    # print(intersection)
-    if intersection.geom_type == 'MultiPoint':
-        x, y = zip(*[(point.x, point.y) for point in intersection.geoms])
-        plt.plot(x, y, '.', color = 'tab:red')
-        # plt.plot(*LineString(intersection).coords.xy, 'ro')
-        # print(x, y)
-    elif intersection.geom_type == 'Point':
-        plt.plot(*intersection.xy, 'ro')
-        print(*intersection.xy[0],*intersection.xy[1])
+    try:
+        print(intersection)
+        if intersection.geom_type == 'MultiPoint':
+            x, y = zip(*[(point.x, point.y) for point in intersection.geoms])
+            plt.plot(x, y, '.', color = 'tab:red')
+            # plt.plot(*LineString(intersection).coords.xy, 'ro')
+            print(x, y)
+        elif intersection.geom_type == 'Point':
+            plt.plot(*intersection.xy, 'ro')
+            print(*intersection.xy[0],*intersection.xy[1])
+    except:
+        print("No hay intersección")
     ax.legend()
     plt.plot(*(r_v,p2_v),'b.')
     ax.grid(color = '0.95')
@@ -253,31 +266,36 @@ def plotBestResponceCompCDS(b1_v,b2_v,p1_v, p2_v, r_v,g1,g2,h1,h2,h3,
     Y1 = [x["mejor_respuesta"] if (x['flag']) else np.nan for x in result1]
 
     # print(result2)
-    X2 = [x['mejor_respuesta'] if (x['flag']) else np.nan for x in result3]
-    Y2 = [x['p_1'] if (x['flag']) else np.nan for x in result3]
+    X2 = [x['mejor_respuesta'] if ((x['flag'] or x['fun'] == 0)) else np.nan for x in result3]
+    X2_1 = [x['mejor_respuesta'] if ((x['flag'] or x['fun'] == 0) and x['p_2'] + x['mejor_respuesta'] <= 1) else np.nan for x in result3]
+    X2_2 = [x['mejor_respuesta'] if ((x['flag'] or x['fun'] == 0) and x['p_2'] + x['mejor_respuesta'] > 1) else np.nan for x in result3]
+    Y2 = [x['p_1'] if (x['flag'] or x['fun'] == 0)  else np.nan for x in result3]
 
     fig, ax = plt.subplots()
 
-
-    ax.plot(X1,Y1,'k' ,label = f'$p_1^*(p_2 = {p2_v:5.4f},r)$')
-    ax.plot(X2,Y2, '--',color = 'orange' ,label = f'$r^*(p_1,p_2 = {p2_v:5.4f})$')
-    # ax.plot(r_eq,p2_eq,'r',alpha=.9)
+    ax.plot(X1,Y1,'k' ,label = f'$p_1^*(p_2={p2_v:5.4f},r)$')
+    ax.plot(X2_1,Y2, '--',color = 'tab:green', label = f'$r^*(p_1,p_2={p2_v:5.4f})$')
+    ax.plot(X2_2,Y2, '--',color = 'tab:green')
+    # ax.plot(x0_r, 1-x0_r, color = 'tab:green')
 
     ax.set(ylabel = 'precio de $\\mathcal{A}_1 (p_1)$',
         xlabel = 'precio de $\\mathcal{A}_3 (r)$')
 
     first_line = LineString(np.column_stack((X1, Y1)))
     second_line = LineString(np.column_stack((X2, Y2)))
-    intersection = first_line.intersection(second_line)
-    # print(intersection)
-    if intersection.geom_type == 'MultiPoint':
-        x, y = zip(*[(point.x, point.y) for point in intersection.geoms])
-        plt.plot(x, y, '.', color = 'tab:red')
-        # plt.plot(*LineString(intersection).coords.xy, 'ro')
-        # print(x, y)
-    elif intersection.geom_type == 'Point':
-        plt.plot(*intersection.xy, 'ro')
-        print(*intersection.xy[0],*intersection.xy[1])
+    try:
+        intersection = first_line.intersection(second_line)
+        print(intersection)
+        if intersection.geom_type == 'MultiPoint':
+            x, y = zip(*[(point.x, point.y) for point in intersection.geoms])
+            plt.plot(x, y, '.', color = 'tab:red')
+            # plt.plot(*LineString(intersection).coords.xy, 'ro')
+            print(x, y)
+        elif intersection.geom_type == 'Point':
+            plt.plot(*intersection.xy, 'ro')
+            print(*intersection.xy[0],*intersection.xy[1])
+    except:
+        print("No hay intersección")
     ax.legend()
     plt.plot(*(r_v,p1_v),'b.')
 
@@ -298,11 +316,29 @@ def plotBestResponceCompCDS(b1_v,b2_v,p1_v, p2_v, r_v,g1,g2,h1,h2,h3,
     Y1 = [x["mejor_respuesta"] if (x['flag']) else np.nan for x in result1]
 
     # print(result2)
-    X2 = [x['mejor_respuesta'] if (x['flag']) else np.nan for x in result2]
-    Y2 = [x['p_1'] if (x['flag']) else np.nan for x in result2]
+    Y2 = [x["p_1"] if (x['flag']) else np.nan for x in result2]
+    X2 = [x["mejor_respuesta"] if (x['flag'] and x['p_1']) else np.nan for x in result2]
+    X2_1 = [x["mejor_respuesta"] if (x['flag'] and x['p_1'] + x['mejor_respuesta'] <= 1) else np.nan for x in result2]
+    X2_2 = [x["mejor_respuesta"] if (x['flag'] and x['p_1'] + x['mejor_respuesta'] > 1) else np.nan for x in result2]
 
     fig, ax = plt.subplots()
 
+    first_line = LineString(np.column_stack((X1, Y1)))
+    second_line = LineString(np.column_stack((X2, Y2)))
+    intersection = first_line.intersection(second_line)
+    try:
+        intersection = first_line.intersection(second_line)
+        print(intersection)
+        if intersection.geom_type == 'MultiPoint':
+            x, y = zip(*[(point.x, point.y) for point in intersection.geoms])
+            plt.plot(x, y, '.', color = 'tab:red')
+            # plt.plot(*LineString(intersection).coords.xy, 'ro')
+            print(x, y)
+        elif intersection.geom_type == 'Point':
+            plt.plot(*intersection.xy, 'ro')
+            print(*intersection.xy[0],*intersection.xy[1])
+    except:
+        print("No hay intersección")
     # separate discrete jumps
     Y1_aux = np.zeros(len(Y1))
     X2_aux = np.zeros(len(X2))
@@ -331,18 +367,6 @@ def plotBestResponceCompCDS(b1_v,b2_v,p1_v, p2_v, r_v,g1,g2,h1,h2,h3,
     ax.set(ylabel = 'precio de $\\mathcal{A}_1 (p_1)$',
         xlabel = 'precio de $\\mathcal{A}_2 (p_2)$')
 
-    first_line = LineString(np.column_stack((X1, Y1)))
-    second_line = LineString(np.column_stack((X2, Y2)))
-    intersection = first_line.intersection(second_line)
-    # print(intersection)
-    if intersection.geom_type == 'MultiPoint':
-        x, y = zip(*[(point.x, point.y) for point in intersection.geoms])
-        plt.plot(x, y, '.', color = 'tab:red')
-        # plt.plot(*LineString(intersection).coords.xy, 'ro')
-        # print(x, y)
-    elif intersection.geom_type == 'Point':
-        plt.plot(*intersection.xy, 'ro')
-        print(*intersection.xy[0],*intersection.xy[1])
     ax.legend()
     plt.plot(*(p2_v,p1_v),'b.')
 
@@ -379,7 +403,7 @@ if __name__ == '__main__':
     
     result["res1"] = plotBestResponceCompCDS(b1_v,b2_v,0.86618168, 0.93785456, 0.06214544,g1,g2_base,h1,h2,h3_esc1,n_lin=1200,
                             aditional='_base_esc1')
-    result["res2"] = plotBestResponceCompCDS(b1_v,b2_v,0.8383179182521371, 0.8383179188267246, 0.1627030303030303,g1,g2_base,h1,h2,h3_esc2,n_lin=1200,
+    result["res2"] = plotBestResponceCompCDS(b1_v,b2_v,0.8383179182521371, 0.8383179188267246, 0.7,g1,g2_base,h1,h2,h3_esc2,n_lin=1200,
                             aditional='_base_esc2')
     result["res3"] = plotBestResponceCompCDS(b1_v,b2_v,0.87028662, 0.95057993, 0.04942007,g1,g2_pesimista,h1,h2,h3_esc1,n_lin=1200,
                             aditional='_pesimista_esc1')

@@ -57,6 +57,10 @@ def searchEquilibriumPrices(g, h, nLinspace = 200,path = '',aditional = '',
                                             constraints = cons,
                                             tol=1e-10, options={"maxiter" : 1000})
         return_dict[f"{b_v}.p"] = resultado.x[0] if not math.isnan(resultado.x[0]) else np.nan
+        try:
+            return_dict[f"{b_v}.q"] = float(q.subs([(p,resultado.x[0]),(b,b_v)])) if not math.isnan(resultado.x[0]) else np.nan
+        except:
+            print(resultado.x[0])
         return_dict[f"{b_v}.success"] = str(resultado.success)
         # print(f"el equilibrio con {b_v} y {x0} fue: {resultado.x[0]}")
         return return_dict
@@ -70,22 +74,24 @@ def searchEquilibriumPrices(g, h, nLinspace = 200,path = '',aditional = '',
     return_dict = manager.dict()
     processes = []
 
-    for b_v in blin_v:
-        proc = mp.Process(target = busqueda_equilibrio, args = (b_v,return_dict,))
-        proc.start()
-        processes.append(proc)
+    # for b_v in blin_v:
+    #     proc = mp.Process(target = busqueda_equilibrio, args = (b_v,return_dict,))
+    #     proc.start()
+    #     processes.append(proc)
 
 
-    for process in processes:
-        process.join()
+    # for process in processes:
+    #     process.join()
 
-    # diccionario normal
-    resultado = dict()
-    for x,y in return_dict.items():
-        resultado[x] = y
+    # # diccionario normal
+    # resultado = dict()
+    # for x,y in return_dict.items():
+    #     resultado[x] = y
 
-    with open(f'{path}equilibrios_monopolio{aditional}.json', 'w') as f:
-        json.dump(resultado, f)
+    # # print(resultado)
+
+    # with open(f'{path}equilibrios_monopolio{aditional}.json', 'w') as f:
+    #     json.dump(resultado, f)
 
     if searchEquilibrium:
         resultado = dict()
@@ -96,6 +102,7 @@ def searchEquilibriumPrices(g, h, nLinspace = 200,path = '',aditional = '',
                 "b_v" : b_v, 
                 "g": pycode(g),
                 "p": p_eq,
+                "q": q.subs([(p,p_eq),(b,b_v)]),
                 "u": -1*f_objetivo([p_eq],b_v)
             }
     return(resultado)

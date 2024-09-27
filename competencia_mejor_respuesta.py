@@ -130,7 +130,7 @@ if __name__ == '__main__':
 
         fig, ax = plt.subplots()
         ax.plot(X1,Y1,'k' ,label = '$p_1^*(p_2)$')
-        ax.plot(X2,Y2, 'k--' ,label = '$p_2^*(p_1)$')
+        ax.plot(X2,Y2, '--',color = "tab:orange" ,label = '$p_2^*(p_1)$')
 
         first_line = LineString(np.column_stack((X1, Y1)))
         second_line = LineString(np.column_stack((X2, Y2)))
