@@ -66,7 +66,7 @@ def plotIssuedAmountIntroCDS(b2_v,r_v,g2,n = 100, savePath = 'figuras/intro_cds_
     x0 = [element[0] for element in points0] # right side
     x1 = [element[0] for element in points1] # left side
     
-    # complete de vector of prices
+    # completes the vector of prices
     listPrices = np.linspace(0,1,n)
 
     newList = []

@@ -56,6 +56,8 @@ def plotThetaHatTwoIntroCDS(b2_v,q2_v,r_v, g2,savePath = 'figuras/intro_cds_thet
     ax.vlines(b2_v/q2_v,0.9*np.min(tgorro_vec),np.max(tgorro_vec),linestyle = 'dashed', label = '$p_2q_2=\\bar b_2$')
     ax.vlines(1 - r_v,0.9*np.min(tgorro_vec),np.max(tgorro_vec),linestyle = 'dashed', label = '$p_2 + r = 1$', color = 'orange')
     ax.legend()
+    ax.set(ylabel = '$\\hat\\theta_2$',
+            xlabel = 'precio ($p_2$)')
 
     plt.savefig(savePath)
 
