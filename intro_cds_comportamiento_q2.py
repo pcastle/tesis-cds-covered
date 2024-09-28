@@ -83,7 +83,9 @@ def plotIssuedAmountIntroCDS(b2_v,r_v,g2,n = 100, savePath = 'figuras/intro_cds_
     auxVar = len(x1)
     allPrices = np.concatenate((x1,x0)) 
     newQFunction = np.zeros(len(newList))
+    newQFunction_aux = np.zeros(len(newList))
     newQFunction2 = np.zeros(len(newList))
+    newQFunction2_aux = np.zeros(len(newList))
     reachFund = np.zeros(len(newList))
     for ii,p_val in enumerate(newList):
         # search the index
@@ -106,18 +108,43 @@ def plotIssuedAmountIntroCDS(b2_v,r_v,g2,n = 100, savePath = 'figuras/intro_cds_
             reachFund[ii] = b2_v/p_val
 
         newQFunction2[ii] = min(1,newQFunction[ii],b2_v/p_val)
+        # I separate into two cases
+        if p_val + r_v < 1 - 0.006:
+            newQFunction[ii] = newQFunction[ii]
+            newQFunction_aux[ii] = np.nan
+
+            newQFunction2[ii] = newQFunction2[ii]
+            newQFunction2_aux[ii] = np.nan
+        elif p_val + r_v < 1 + 0.006:
+            newQFunction[ii] = np.nan
+            newQFunction_aux[ii] = np.nan
+
+            newQFunction2[ii] = np.nan
+            newQFunction2_aux[ii] = np.nan
+        else:
+            newQFunction_aux[ii] = newQFunction[ii]
+            newQFunction[ii] = np.nan
+
+            newQFunction2_aux[ii] = newQFunction2[ii]
+            newQFunction2[ii] = np.nan
         
     ax.plot(newList,reachFund,'--', label = '$p_2q_2 = \\bar b_2$')
     ax.plot(newList,newQFunction,'k',label = '$\\min\\left(1,\\frac{d_2}{p_2}\\right)$')
-    ax.plot(newList,newQFunction2,':',color = 'tab:red',label = '$\\min\\left(1,\\frac{d_2}{p_2},\\frac{\\bar b_2}{p_2}\\right)$')
+    ax.plot(newList,newQFunction2,':',color = 'tab:red',label = '$q_2(p_2,r)$')
     ax.vlines(b2_v,0,1,linestyles='dashed',color= 'green', label= '$p_2 = \\bar b_2$')
     ax.vlines(1-r_v,0,1,linestyle = 'dashed', color = 'orange', label='$p_2 + r = 1$')
+    ax.plot(newList,newQFunction_aux,'k')
+    ax.plot(newList,newQFunction2_aux,':',color = 'tab:red')
 
     #get handles and labels
     handles, labels = plt.gca().get_legend_handles_labels()
 
     #specify order of items in legend
     order = [1,2,3,0,4]
+
+    #add axis label
+    ax.set(ylabel = '$q_2(p_2)$',
+        xlabel = '$p_2$') 
 
     #add legend to plot
     plt.legend([handles[idx] for idx in order],[labels[idx] for idx in order])
