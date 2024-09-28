@@ -142,6 +142,8 @@ if __name__ == '__main__':
             plt.plot(*intersection.xy, 'ro')
             print(*intersection.xy[0],*intersection.xy[1])
         ax.legend()
+        ax.set(ylabel = 'precio de $\\mathcal{A}_1 (p_1)$',
+                xlabel = 'precio de $\\mathcal{A}_2 (p_2)$')
 
         # Se añade un grilla
         plt.grid(color = '0.95')
