@@ -1,8 +1,20 @@
-# tesis-cds-covered
+# Tesis de Magister en Económia
 
-Repositorio con los códigos de la simulaciones de la tesis.
+![Python Version](https://img.shields.io/badge/Python-3.13%2B-blue)
+![Dependencies](https://img.shields.io/badge/Dependencies-pyproject.toml-informational)
 
-# Versión de los paquetes
+Este repositorio contiene los códigos de las simulaciones de la tesis titulada "Mercado de bonos competitivos con CDS ‘Covered’: Un enfoque bajo creencias heterogéneas".
 
-matplotlib = 3.7.2
-shapely = 2.0.4
+Alumno: Patricio Castillo  
+Profesoras guías: [Adriana Piazza](https://sites.google.com/view/adrianapiazza) y Pilar Lorenzo
+
+## Requisitos
+
+Este proyecto utiliza Python 3.13 o superior.  
+Las dependencias y requisitos están especificados en el archivo [`pyproject.toml`](./pyproject.toml).
+
+Para instalar las dependencias, puedes usar:
+
+```bash
+pip install .
+```

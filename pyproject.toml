@@ -1,0 +1,13 @@
+[project]
+name = "tesis-cds-covered"
+version = "0.1.0"
+description = "Simulaciones númericas de la tesis \"Mercado de bonos competitivos con CDS ‘Covered’: Un enfoque bajo creencias heterogéneas\"."
+authors = [
+    {name = "Patricio Castillo",email = "pcastillod@fen.uchile.cl"}
+]
+license = {file = "LICENSE"}
+readme = "README.md"
+requires-python = ">=3.13"
+dependencies = [
+    "numpy (>=2.2.4,<3.0.0)"
+]
